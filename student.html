@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>نادي غرس - صفحة الطالب</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+<link rel="stylesheet" href="css/styles.css">
+<style>
+.page-section { display:none; animation:fadeIn 0.3s ease; }
+.page-section.active { display:block; }
+
+/* Points card */
+.pts-hero {
+  background: linear-gradient(135deg, var(--navy), var(--navy-light));
+  border-radius: var(--radius-lg);
+  padding: 28px 20px;
+  text-align: center;
+  color: var(--white);
+  cursor: pointer;
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+.pts-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 70% 30%, rgba(201,162,39,0.2), transparent 60%);
+}
+.pts-hero:hover { transform: translateY(-2px); box-shadow: var(--shadow-gold); }
+.pts-number { font-size: 3.5rem; font-weight: 900; color: var(--gold); line-height: 1; text-shadow: 0 0 30px var(--gold-glow); }
+.pts-label { font-size: 0.85rem; color: var(--white-70); margin-top: 6px; }
+.pts-click-hint { font-size: 0.72rem; color: var(--gold); margin-top: 8px; opacity: 0.8; }
+
+/* Memo progress */
+.memo-circle-wrap { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.memo-num-display { font-size: 1.3rem; font-weight: 800; color: var(--navy); }
+.memo-label { font-size: 0.8rem; color: var(--gray); }
+.motivation-text { font-size: 0.85rem; font-weight: 700; padding: 8px 16px; border-radius: 20px; text-align: center; }
+.motivation-done { background: var(--green-light); color: var(--green); border: 1px solid rgba(56,161,105,0.3); }
+.motivation-progress { background: rgba(201,162,39,0.1); color: var(--gold-dark); border: 1px solid rgba(201,162,39,0.3); }
+
+/* Attendance card in student */
+.attend-record {
+  text-align: center;
+  padding: 14px 10px;
+  border-radius: var(--radius);
+  background: var(--white);
+  border: 1px solid var(--gray-mid);
+  min-width: 90px;
+  display: inline-block;
+  margin: 4px;
+}
+.attend-day { font-size: 0.78rem; font-weight: 700; color: var(--navy); }
+.attend-date { font-size: 0.72rem; color: var(--gray); margin: 3px 0; }
+.attend-status { font-size: 0.8rem; font-weight: 700; padding: 4px 10px; border-radius: 12px; display: inline-block; margin-top: 4px; }
+
+/* Option card for homework */
+.option-card {
+  border: 2px solid var(--gray-mid); border-radius: var(--radius-sm); padding: 12px 16px;
+  cursor: pointer; transition: var(--transition); display: flex; align-items: center;
+  gap: 12px; margin-bottom: 8px; background: var(--white); user-select: none; position: relative;
+}
+.option-card:hover { border-color: var(--gold); }
+.option-card.selected { border-color: var(--gold); background: rgba(201,162,39,0.08); }
+.option-letter { width: 32px; height: 32px; background: var(--navy); color: var(--gold); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; flex-shrink: 0; }
+.option-card.selected .option-letter { background: var(--gold); color: var(--navy); }
+
+/* HW fullscreen */
+.hw-fullscreen { position: fixed; inset: 0; background: var(--white); z-index: 9999; overflow-y: auto; padding: 16px; }
+.hw-top-bar { position: sticky; top: 0; background: var(--white); padding: 10px 0; border-bottom: 1px solid var(--gray-mid); margin-bottom: 16px; z-index: 10; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.warning-dots { display: flex; gap: 4px; }
+.warning-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--gray-mid); }
+.warning-dot.used { background: var(--red); box-shadow: 0 0 6px rgba(229,62,62,0.5); }
+
+/* Groups leaderboard */
+.grp-rank { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-radius: var(--radius-sm); background: var(--white); border: 1px solid var(--gray-mid); margin-bottom: 8px; }
+
+/* Seerah lesson view */
+.tab-btns { display: flex; gap: 8px; margin-bottom: 12px; }
+.tab-btn { padding: 8px 16px; border-radius: var(--radius-sm); border: 1.5px solid var(--gray-mid); background: var(--white); font-family: 'Tajawal', sans-serif; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: var(--transition); }
+.tab-btn.active { background: var(--navy); color: var(--gold); border-color: var(--navy); }
+.tab-btn:hover:not(.active) { border-color: var(--gold); }
+
+/* Comment area */
+.comment-item { background: #f8fafc; border-radius: 10px; padding: 12px; margin-bottom: 10px; border-right: 3px solid var(--gold); }
+.comment-author { font-weight: 800; font-size: 0.88rem; color: var(--navy); }
+.comment-text { font-size: 0.84rem; margin-top: 4px; white-space: pre-wrap; }
+.comment-time { font-size: 0.74rem; color: var(--gray); margin-top: 4px; }
+
+/* Back btn */
+.back-btn-top { display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:var(--navy);color:var(--white);border-radius:var(--radius-sm);font-size:0.82rem;font-weight:600;cursor:pointer;transition:var(--transition);border:none;margin-bottom:16px; }
+.back-btn-top:hover { background:var(--navy-light); transform:translateX(3px); }
+
+@keyframes fadeIn { from{opacity:0}to{opacity:1} }
+
+/* Lesson card student */
+.lesson-card-student {
+  background: var(--white);
+  border: 1px solid var(--gray-mid);
+  border-radius: var(--radius-lg);
+  margin-bottom: 16px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+}
+.lesson-card-student:hover { box-shadow: var(--shadow-gold); transform: translateY(-2px); }
+.lesson-card-top { display:flex; align-items:center; gap:12px; padding:16px; background:linear-gradient(135deg,var(--navy),var(--navy-light)); }
+.lesson-card-icon { font-size:2rem; flex-shrink:0; }
+.lesson-card-info { flex:1; min-width:0; }
+.lesson-card-title { font-weight:800; font-size:0.95rem; color:var(--white); }
+.lesson-card-date { font-size:0.75rem; color:var(--white-70); margin-top:3px; }
+.lesson-card-tags { display:flex; flex-wrap:wrap; gap:4px; }
+.lesson-tag { background:rgba(201,162,39,0.2); color:var(--gold); border-radius:12px; padding:2px 8px; font-size:0.72rem; font-weight:700; border:1px solid rgba(201,162,39,0.3); }
+.lesson-card-desc { padding:12px 16px; font-size:0.84rem; color:var(--gray); line-height:1.6; border-bottom:1px solid var(--gray-mid); }
+.lesson-card-actions { padding:12px 16px; }
+/* HW card solved */
+.hw-card.solved { border-color:rgba(56,161,105,0.4); }
+
+
+@keyframes modalSlideIn {
+  from{opacity:0;transform:translateY(40px) scale(0.95)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+@keyframes countUp {
+  from{opacity:0;transform:translateY(10px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@keyframes zoomIn {
+  from{opacity:0;transform:scale(0.88)}
+  to{opacity:1;transform:scale(1)}
+}
+
+</style>
+</head>
+<body>
+
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">🌱</div>
+      <div>
+        <div class="sidebar-club-name">نادي غرس</div>
+        <div style="font-size:0.7rem;color:var(--white-70)" id="sidebarUserName">...</div>
+      </div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-item active" onclick="navigate('home')" data-page="home"><span class="nav-icon">🏠</span> الصفحة الرئيسية</div>
+    <div class="nav-item" onclick="navigate('seerah')" data-page="seerah"><span class="nav-icon">🕌</span> درس السيرة</div>
+    <div class="nav-item" onclick="navigate('homework')" data-page="homework"><span class="nav-icon">📚</span> الواجبات</div>
+  </nav>
+  <div class="sidebar-footer">
+    <button class="logout-btn" onclick="Auth.logout()">🚪 تسجيل الخروج</button>
+  </div>
+</div>
+
+<div class="main-content">
+  <div class="top-header">
+    <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+    <div class="header-title">
+      <div class="header-logo-icon">🌱</div>
+      <div class="header-club-name">نادي غرس</div>
+    </div>
+    <div class="header-user">
+      <div class="user-avatar" id="headerAvatar">ط</div>
+      <span id="headerUserName">...</span>
+    </div>
+  </div>
+
+  <!-- Countdown -->
+  <div id="countdownBar" style="display:none" class="countdown-bar">
+    <span style="color:var(--white-70);font-size:0.8rem">⏰ اللقاء القادم:</span>
+    <div class="flex-center gap-1">
+      <div class="countdown-item"><span class="countdown-num" id="cdDays">00</span><span class="countdown-label">أيام</span></div>
+      <span class="countdown-sep">:</span>
+      <div class="countdown-item"><span class="countdown-num" id="cdHours">00</span><span class="countdown-label">ساعات</span></div>
+      <span class="countdown-sep">:</span>
+      <div class="countdown-item"><span class="countdown-num" id="cdMins">00</span><span class="countdown-label">دقائق</span></div>
+      <span class="countdown-sep">:</span>
+      <div class="countdown-item"><span class="countdown-num" id="cdSecs">00</span><span class="countdown-label">ثواني</span></div>
+    </div>
+    <span style="color:var(--gold);font-size:0.8rem;font-weight:600" id="cdMeetingTitle"></span>
+  </div>
+
+  <div class="page-content">
+
+    <!-- HOME -->
+    <div class="page-section active" id="section-home">
+      <!-- Points Hero -->
+      <div class="pts-hero-v2 mb-2" onclick="navigate('points-detail')">
+        <div class="pts-hero-v2-label">نقاطي الكلية</div>
+        <div class="pts-hero-v2-num" id="studentPoints">0</div>
+        <div class="pts-hero-v2-hint">اضغط لعرض التفاصيل 👆</div>
+      </div>
+
+      <!-- Memo Button (small) -->
+      <div class="card mb-2" style="cursor:pointer" onclick="navigate('memo-detail')">
+        <div class="card-body" style="padding:14px 16px">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div class="flex gap-2" style="align-items:center">
+              <span style="font-size:1.4rem">📖</span>
+              <span style="font-weight:700;color:var(--navy)">مقرر التسميع</span>
+            </div>
+            <span style="font-size:0.82rem;color:var(--gold);font-weight:700">اضغط للتفاصيل ←</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Groups Leaderboard -->
+      <div class="card mb-2">
+        <div class="card-header"><h3>🏆 ترتيب المجموعات</h3></div>
+        <div class="card-body" id="groupsRanking">
+          <p style="color:var(--gray);font-size:0.85rem;text-align:center">لا توجد مجموعات</p>
+        </div>
+      </div>
+
+      <!-- Attendance Records -->
+      <div class="card">
+        <div class="card-header"><h3>📅 سجل حضوري</h3></div>
+        <div class="card-body" id="attendanceRecords">
+          <p style="color:var(--gray);font-size:0.85rem;text-align:center">لا توجد سجلات حضور</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- POINTS DETAIL -->
+    <div class="page-section" id="section-points-detail">
+      <button class="back-btn-top" onclick="navigate('home')">← رجوع</button>
+      <div class="section-title mb-2">⭐ تفاصيل نقاطي</div>
+      <div id="pointsDetailCard">
+        <div class="card"><div class="card-body"><p style="color:var(--gray);text-align:center">جاري التحميل...</p></div></div>
+      </div>
+    </div>
+
+    <!-- MEMO DETAIL -->
+    <div class="page-section" id="section-memo-detail">
+      <button class="back-btn-top" onclick="navigate('home')">← رجوع</button>
+      <div class="section-title mb-2">📖 مقرر التسميع</div>
+      <div class="card" id="memoDetailCard">
+        <div class="card-body"><p style="color:var(--gray);text-align:center">جاري التحميل...</p></div>
+      </div>
+    </div>
+
+    <!-- SEERAH -->
+    <div class="page-section" id="section-seerah">
+      <div class="section-title mb-2">🕌 درس السيرة</div>
+      <div id="seerahList">
+        <div class="no-data"><div class="no-data-icon">🕌</div><p>لا توجد دروس بعد</p></div>
+      </div>
+    </div>
+
+    <!-- LESSON VIEW -->
+    <div class="page-section" id="section-lesson-view">
+      <button class="back-btn-top" onclick="navigate('seerah')">← رجوع</button>
+      <div id="lessonViewContent"></div>
+    </div>
+
+    <!-- HOMEWORK -->
+    <div class="page-section" id="section-homework">
+      <div class="section-title mb-2">📚 الواجبات</div>
+      <div class="tabs">
+        <div class="tab active" onclick="switchStudentHwTab('sent')">📤 المرسلة</div>
+        <div class="tab" onclick="switchStudentHwTab('done')">✅ المنتهية</div>
+      </div>
+      <div id="sHwTab-sent">
+        <div id="studentSentHw"><div class="no-data"><div class="no-data-icon">📤</div><p>لا توجد واجبات</p></div></div>
+      </div>
+      <div id="sHwTab-done" style="display:none">
+        <div id="studentDoneHw"><div class="no-data"><div class="no-data-icon">✅</div><p>لا توجد واجبات منتهية</p></div></div>
+      </div>
+    </div>
+
+    <!-- MY ANSWERS -->
+    <div class="page-section" id="section-my-answers">
+      <button class="back-btn-top" onclick="navigate('homework')">← رجوع</button>
+      <div id="myAnswersContent"></div>
+    </div>
+
+  </div><!-- end page-content -->
+
+  <footer class="footer">
+    جميع الحقوق محفوظة لـ <span class="footer-brand">نادي غرس</span> © 2026
+  </footer>
+</div>
+
+<!-- HW FULLSCREEN -->
+<div id="hwFullscreen" style="display:none" class="hw-fullscreen">
+  <div class="hw-top-bar">
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="hw-solve-timer" id="hwSolveTimer">∞</div>
+    </div>
+    <div style="font-weight:700;font-size:0.88rem;flex:1;text-align:center" id="hwSolveTitle">الواجب</div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+      <div style="font-size:0.7rem;color:var(--gray)">إنذارات</div>
+      <div class="warning-dots">
+        <div class="warning-dot" id="wd1"></div>
+        <div class="warning-dot" id="wd2"></div>
+        <div class="warning-dot" id="wd3"></div>
+      </div>
+    </div>
+  </div>
+  <div id="hwSolveBody" style="padding-bottom:80px"></div>
+  <div style="position:fixed;bottom:0;left:0;right:0;padding:12px 16px;background:var(--white);border-top:1px solid var(--gray-mid);display:flex;justify-content:flex-end;z-index:10">
+    <button class="btn btn-primary" id="submitHwBtn" onclick="submitStudentHomework()">📤 إرسال الواجب</button>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="js/firebase-config.js"></script>
+<script src="js/student.js"></script>
+</body>
+</html>

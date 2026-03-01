@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>نادي غرس - لوحة المعلم</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+<link rel="stylesheet" href="css/styles.css">
+<style>
+/* ====== Teacher Extra Styles ====== */
+.page-section { display: none; animation: fadeIn 0.3s ease; }
+.page-section.active { display: block; }
+
+/* Home page cards */
+.home-stat-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 16px;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--gray-mid);
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+.home-stat-card::before {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--gold), var(--gold-dark));
+}
+.home-stat-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-gold); }
+.home-stat-value { font-size: 1.8rem; font-weight: 800; color: var(--navy); }
+.home-stat-label { font-size: 0.75rem; color: var(--gray); margin-top: 4px; font-weight: 600; }
+.home-stat-icon { font-size: 1.8rem; margin-bottom: 8px; }
+
+/* Student list items */
+.student-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid #f0f4f8;
+  transition: var(--transition-fast);
+  gap: 8px;
+}
+.student-row:last-child { border-bottom: none; }
+.student-row:hover { background: rgba(201,162,39,0.05); }
+.student-name { font-weight: 600; font-size: 0.9rem; color: var(--navy); }
+.student-group { font-size: 0.75rem; color: var(--gray); }
+.student-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+/* HW cards */
+.hw-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  border: 1px solid var(--gray-mid);
+  margin-bottom: 12px;
+  overflow: hidden;
+  transition: var(--transition);
+}
+.hw-card:hover { box-shadow: var(--shadow-md); }
+.hw-card.expired { opacity: 0.6; }
+.hw-card-header {
+  padding: 12px 14px;
+  background: linear-gradient(135deg, var(--navy), var(--navy-light));
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.hw-card-title { font-weight: 700; font-size: 0.9rem; flex: 1; }
+.hw-card-body { padding: 12px 14px; }
+.hw-meta { display: flex; flex-wrap: wrap; gap: 8px; font-size: 0.8rem; color: var(--gray); margin-top: 6px; }
+.hw-meta span { display: flex; align-items: center; gap: 4px; }
+
+/* Meeting cards */
+.meeting-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  border: 1px solid var(--gray-mid);
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.meeting-card-header {
+  padding: 12px 14px;
+  background: linear-gradient(135deg, var(--navy), var(--navy-light));
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.meeting-info { font-size: 0.82rem; color: var(--gold); margin-top: 3px; }
+
+/* Points row */
+.points-row {
+  display: flex;
+  align-items: center;
+  padding: 10px 14px;
+  border-bottom: 1px solid #f0f4f8;
+  gap: 10px;
+}
+.points-row:last-child { border-bottom: none; }
+.points-input-field {
+  width: 80px;
+  padding: 6px 10px;
+  border: 1.5px solid var(--gray-mid);
+  border-radius: var(--radius-sm);
+  font-family: 'Tajawal', sans-serif;
+  font-size: 0.88rem;
+  text-align: center;
+  direction: ltr;
+  outline: none;
+}
+.points-input-field:focus { border-color: var(--gold); box-shadow: 0 0 0 2px var(--gold-glow); }
+.points-total { font-size: 0.82rem; color: var(--gold); font-weight: 700; background: rgba(201,162,39,0.1); padding: 3px 8px; border-radius: 10px; }
+
+/* Group cards */
+.group-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  border: 1px solid var(--gray-mid);
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.group-header {
+  padding: 12px 14px;
+  background: linear-gradient(135deg, var(--navy), var(--navy-light));
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.group-name { font-weight: 700; font-size: 0.95rem; }
+.group-points { color: var(--gold); font-weight: 800; font-size: 1rem; }
+
+/* Seerah lesson card */
+.lesson-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  border: 1px solid var(--gray-mid);
+  margin-bottom: 10px;
+  overflow: hidden;
+  transition: var(--transition);
+}
+.lesson-card:hover { box-shadow: var(--shadow-md); }
+.lesson-header {
+  padding: 12px 14px;
+  background: linear-gradient(135deg, var(--navy), var(--navy-light));
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.lesson-title { font-weight: 700; font-size: 0.9rem; flex: 1; }
+.lesson-viewers { font-size: 0.75rem; color: rgba(255,255,255,0.7); }
+
+/* Memorization row */
+.memo-row {
+  display: flex;
+  align-items: center;
+  padding: 10px 14px;
+  border-bottom: 1px solid #f0f4f8;
+  gap: 10px;
+}
+.memo-row:last-child { border-bottom: none; }
+.memo-input {
+  width: 80px;
+  padding: 6px 10px;
+  border: 1.5px solid var(--gray-mid);
+  border-radius: var(--radius-sm);
+  font-family: 'Tajawal', sans-serif;
+  font-size: 0.88rem;
+  text-align: center;
+  direction: ltr;
+  outline: none;
+}
+.memo-input:focus { border-color: var(--gold); box-shadow: 0 0 0 2px var(--gold-glow); }
+
+/* Section navigator */
+.back-btn-top {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: var(--navy);
+  color: var(--white);
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  border: none;
+  margin-bottom: 16px;
+}
+.back-btn-top:hover { background: var(--navy-light); transform: translateX(3px); }
+
+/* Attendance selector */
+.attend-select {
+  display: flex;
+  gap: 6px;
+}
+.attend-opt {
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1.5px solid var(--gray-mid);
+  transition: var(--transition);
+  background: var(--white);
+}
+.attend-opt:hover { border-color: var(--gold); }
+.attend-opt.selected-present { background: var(--green); color: #fff; border-color: var(--green); }
+.attend-opt.selected-absent { background: var(--red); color: #fff; border-color: var(--red); }
+.attend-opt.selected-excused { background: var(--orange); color: #fff; border-color: var(--orange); }
+
+/* Teacher new card */
+.teacher-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  border: 1px solid var(--gray-mid);
+  margin-bottom: 10px;
+  overflow: hidden;
+  transition: var(--transition);
+}
+.teacher-card:hover { box-shadow: var(--shadow-md); }
+.teacher-card-header {
+  padding: 12px 14px;
+  background: linear-gradient(135deg, var(--navy), var(--navy-light));
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.teacher-card-header h4 { font-size: 0.9rem; font-weight: 700; }
+
+/* Stats accordion */
+.stats-btn-group { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.stats-toggle-btn {
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  border: 1.5px solid var(--gray-mid);
+  color: var(--navy);
+  font-family: 'Tajawal', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.stats-toggle-btn:hover { border-color: var(--gold); color: var(--gold); }
+.stats-toggle-btn.active { background: var(--navy); color: var(--gold); border-color: var(--navy); }
+
+/* Last seen table */
+.seen-row {
+  display: flex;
+  align-items: center;
+  padding: 10px 14px;
+  border-bottom: 1px solid #f0f4f8;
+  gap: 12px;
+}
+.seen-row:last-child { border-bottom: none; }
+.seen-avatar {
+  width: 34px;
+  height: 34px;
+  background: linear-gradient(135deg, var(--navy), var(--navy-light));
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gold);
+  font-size: 0.8rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.seen-info { flex: 1; min-width: 0; }
+.seen-name { font-weight: 700; font-size: 0.88rem; }
+.seen-time { font-size: 0.75rem; color: var(--gray); }
+.seen-date { font-weight: 700; font-size: 0.8rem; color: var(--navy); }
+
+/* Rank */
+.rank-1 { color: #d4af37; font-weight: 800; }
+.rank-2 { color: #a0a0a0; font-weight: 700; }
+.rank-3 { color: #cd7f32; font-weight: 700; }
+
+/* Question builder */
+.question-block {
+  background: #f8fafc;
+  border-radius: var(--radius);
+  border: 1px solid var(--gray-mid);
+  padding: 16px;
+  margin-bottom: 14px;
+  position: relative;
+}
+.question-num {
+  background: var(--navy);
+  color: var(--gold);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.82rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.choice-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.choice-radio {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--gold);
+  flex-shrink: 0;
+}
+.choice-input {
+  flex: 1;
+  padding: 7px 12px;
+  border: 1.5px solid var(--gray-mid);
+  border-radius: var(--radius-sm);
+  font-family: 'Tajawal', sans-serif;
+  font-size: 0.85rem;
+  outline: none;
+  direction: rtl;
+}
+.choice-input:focus { border-color: var(--gold); }
+.choice-del { color: var(--red); cursor: pointer; font-size: 0.9rem; background: none; border: none; padding: 4px; }
+
+/* Timer display in homework solving */
+.hw-solve-timer {
+  background: linear-gradient(135deg, var(--navy), var(--navy-light));
+  color: var(--gold);
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 1.1rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  display: inline-block;
+  box-shadow: var(--shadow-gold);
+}
+
+/* PDF viewer */
+.pdf-frame {
+  width: 100%;
+  height: 500px;
+  border: none;
+  border-radius: var(--radius-sm);
+}
+
+/* Video container */
+.video-responsive {
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%;
+  background: #000;
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.video-responsive video,
+.video-responsive iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* Report section */
+.report-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  border: 1px solid var(--gray-mid);
+  margin-bottom: 10px;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  transition: var(--transition);
+}
+.report-card:hover { box-shadow: var(--shadow-sm); }
+
+@media (max-width: 768px) {
+  .attend-select { flex-wrap: wrap; }
+  .stats-btn-group { gap: 6px; }
+  .stats-toggle-btn { font-size: 0.8rem; padding: 7px 10px; }
+}
+
+/* File Picker */
+.file-picker-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 2px dashed var(--gold);
+  border-radius: var(--radius);
+  padding: 28px 20px;
+  cursor: pointer;
+  transition: var(--transition);
+  background: rgba(201,162,39,0.04);
+  text-align: center;
+}
+.file-picker-area:hover { background: rgba(201,162,39,0.1); border-color: var(--gold-dark); }
+.file-picker-sm { padding: 16px 20px; }
+.file-picker-icon { font-size: 2.2rem; line-height: 1; }
+.file-picker-sm .file-picker-icon { font-size: 1.5rem; }
+.file-picker-title { font-size: 0.88rem; font-weight: 700; color: var(--navy); }
+.file-picker-sub { font-size: 0.74rem; color: var(--gray); }
+.file-picker-chosen { font-size: 0.82rem; font-weight: 700; color: var(--green); background: var(--green-light); padding: 4px 12px; border-radius: 20px; }
+/* Teacher row */
+.teacher-row { display:flex;align-items:center;gap:12px;padding:12px 4px; }
+.teacher-info { flex:1;min-width:0; }
+.teacher-name { font-weight:700;font-size:0.9rem;color:var(--navy); }
+.teacher-creds { font-size:0.78rem;color:var(--gray);margin-top:2px; }
+
+
+/* Toggle Switch */
+.toggle-track-active { background: var(--gold) !important; }
+.toggle-thumb-active { right: auto !important; left: 2px !important; }
+
+
+@keyframes modalSlideIn {
+  from{opacity:0;transform:translateY(40px) scale(0.95)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+
+</style>
+</head>
+<body>
+
+<!-- Sidebar Overlay -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">🌱</div>
+      <div>
+        <div class="sidebar-club-name">نادي غرس</div>
+        <div style="font-size:0.7rem;color:var(--white-70)" id="sidebarUserName">...</div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-item active" onclick="navigate('home')" data-page="home">
+      <span class="nav-icon">🏠</span> الصفحة الرئيسية
+    </div>
+    <div class="nav-item" onclick="navigate('homework')" data-page="homework">
+      <span class="nav-icon">📚</span> الواجبات
+    </div>
+    <div class="nav-item" onclick="navigate('students')" data-page="students">
+      <span class="nav-icon">👥</span> الطلاب
+    </div>
+    <div class="nav-item" onclick="navigate('meetings')" data-page="meetings">
+      <span class="nav-icon">📅</span> إعلان اللقاءات
+    </div>
+    <div class="nav-item" onclick="navigate('points')" data-page="points">
+      <span class="nav-icon">⭐</span> النقاط
+    </div>
+    <div class="nav-item" onclick="navigate('memorization')" data-page="memorization">
+      <span class="nav-icon">📖</span> مقرر التسميع
+    </div>
+    <div class="nav-item" onclick="navigate('groups')" data-page="groups">
+      <span class="nav-icon">🏆</span> المجموعات
+    </div>
+    <div class="nav-item" onclick="navigate('seerah')" data-page="seerah">
+      <span class="nav-icon">🕌</span> درس السيرة
+    </div>
+    <div class="nav-item" id="addTeacherNavItem" style="display:none" onclick="navigate('teachers')" data-page="teachers">
+      <span class="nav-icon">👨‍🏫</span> المعلمون المسجلون
+    </div>
+  </nav>
+
+  <div class="sidebar-footer">
+    <button class="logout-btn" onclick="Auth.logout()">🚪 تسجيل الخروج</button>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="main-content">
+
+  <!-- Top Header -->
+  <div class="top-header">
+    <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+    <div class="header-title">
+      <div class="header-logo-icon">🌱</div>
+      <div class="header-club-name">نادي غرس</div>
+    </div>
+    <div class="header-user">
+      <div class="user-avatar" id="headerAvatar">م</div>
+      <span id="headerUserName">...</span>
+    </div>
+  </div>
+
+  <!-- Countdown Bar -->
+  <div id="countdownBar" style="display:none" class="countdown-bar">
+    <span style="color:var(--white-70);font-size:0.8rem">⏰ اللقاء القادم:</span>
+    <div class="flex-center gap-1">
+      <div class="countdown-item"><span class="countdown-num" id="cdDays">00</span><span class="countdown-label">أيام</span></div>
+      <span class="countdown-sep">:</span>
+      <div class="countdown-item"><span class="countdown-num" id="cdHours">00</span><span class="countdown-label">ساعات</span></div>
+      <span class="countdown-sep">:</span>
+      <div class="countdown-item"><span class="countdown-num" id="cdMins">00</span><span class="countdown-label">دقائق</span></div>
+      <span class="countdown-sep">:</span>
+      <div class="countdown-item"><span class="countdown-num" id="cdSecs">00</span><span class="countdown-label">ثواني</span></div>
+    </div>
+    <span style="color:var(--gold);font-size:0.8rem;font-weight:600" id="cdMeetingTitle"></span>
+  </div>
+
+  <!-- Page Content -->
+  <div class="page-content">
+
+    <!-- ===== HOME PAGE ===== -->
+    <div class="page-section active" id="section-home">
+      <div class="section-header">
+        <div class="section-title">الصفحة الرئيسية</div>
+        <button class="btn btn-primary btn-sm" onclick="showStatsPage()">📊 إحصائيات الطلاب</button>
+      </div>
+
+      <!-- Quick Stats -->
+      <div class="stats-grid" id="homeStatsGrid">
+        <div class="home-stat-card">
+          <div class="home-stat-icon">👥</div>
+          <div class="home-stat-value" id="statTotalStudents">0</div>
+          <div class="home-stat-label">إجمالي الطلاب</div>
+        </div>
+        <div class="home-stat-card">
+          <div class="home-stat-icon">🏆</div>
+          <div class="home-stat-value" id="statTotalGroups">0</div>
+          <div class="home-stat-label">إجمالي المجموعات</div>
+        </div>
+        <div class="home-stat-card">
+          <div class="home-stat-icon">📖</div>
+          <div class="home-stat-value" id="statTopMemo">-</div>
+          <div class="home-stat-label">أعلى متصدر نظم</div>
+        </div>
+        <div class="home-stat-card">
+          <div class="home-stat-icon">⭐</div>
+          <div class="home-stat-value" id="statTopPoints">-</div>
+          <div class="home-stat-label">أول المبادرات</div>
+        </div>
+        <div class="home-stat-card">
+          <div class="home-stat-icon">🥇</div>
+          <div class="home-stat-value" id="statTopGroup">-</div>
+          <div class="home-stat-label">أعلى مجموعة</div>
+        </div>
+      </div>
+
+      <!-- Last Seen -->
+      <div class="card mt-2">
+        <div class="card-header">
+          <h3>👁 آخر ظهور للطلاب</h3>
+        </div>
+        <div class="card-body" id="lastSeenList">
+          <div class="no-data"><div class="no-data-icon">👤</div><p>لا يوجد طلاب مسجلون بعد</p></div>
+        </div>
+      </div>
+
+      <!-- Reports -->
+      <div class="card mt-2">
+        <div class="card-header">
+          <h3>📋 التقارير</h3>
+          <button class="btn btn-sm" style="background:var(--gold);color:var(--navy);font-weight:700" onclick="showCreateReport()">➕ إنشاء تقرير جديد</button>
+        </div>
+        <div class="card-body" id="reportsList">
+          <div class="no-data"><div class="no-data-icon">📄</div><p>لا توجد تقارير</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== STATS PAGE ===== -->
+    <div class="page-section" id="section-stats">
+      <button class="back-btn-top" onclick="navigate('home')">← رجوع</button>
+      <div class="section-title mb-2">📊 إحصائيات الطلاب</div>
+
+      <div class="stats-btn-group">
+        <button class="stats-toggle-btn" onclick="toggleStats('attendance')">📅 الغياب والحضور</button>
+        <button class="stats-toggle-btn" onclick="toggleStats('homework')">📚 الواجبات</button>
+        <button class="stats-toggle-btn" onclick="toggleStats('memorization')">📖 متصدرو النظم</button>
+        <button class="stats-toggle-btn" onclick="toggleStats('points')">⭐ متصدرو النقاط</button>
+        <button class="stats-toggle-btn" onclick="toggleStats('groups')">🏆 المجموعات المتصدرة</button>
+      </div>
+
+      <div id="statsContent-attendance" style="display:none">
+        <div class="card"><div class="card-header"><h3>📅 إحصائية الحضور والغياب</h3></div>
+          <div class="table-wrapper"><table class="table" id="attendanceTable">
+            <thead><tr><th>الطالب</th><th>الحضور</th><th>الغياب</th><th>الاستئذان</th></tr></thead>
+            <tbody id="attendanceTbody"></tbody>
+          </table></div>
+        </div>
+      </div>
+
+      <div id="statsContent-homework" style="display:none">
+        <div class="card">
+          <div class="card-header">
+            <h3>📚 إحصائية الواجبات</h3>
+            <select class="form-select" style="width:auto;padding:4px 8px;font-size:0.82rem" id="hwStatsSelect" onchange="loadHwStats()">
+              <option value="">اختر الواجب</option>
+            </select>
+          </div>
+          <div class="card-body" id="hwStatsContent">
+            <div class="no-data"><div class="no-data-icon">📚</div><p>اختر واجباً من القائمة</p></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="statsContent-memorization" style="display:none">
+        <div class="card"><div class="card-header"><h3>📖 متصدرو تسميع النظم</h3></div>
+          <div class="table-wrapper"><table class="table" id="memoTable">
+            <thead><tr><th>المركز</th><th>الطالب</th><th>الرقم المسجل</th></tr></thead>
+            <tbody id="memoTbody"></tbody>
+          </table></div>
+        </div>
+      </div>
+
+      <div id="statsContent-points" style="display:none">
+        <div class="card"><div class="card-header"><h3>⭐ متصدرو النقاط</h3></div>
+          <div class="table-wrapper"><table class="table" id="pointsTable">
+            <thead><tr><th>المركز</th><th>الطالب</th><th>النقاط</th></tr></thead>
+            <tbody id="pointsTbody"></tbody>
+          </table></div>
+        </div>
+      </div>
+
+      <div id="statsContent-groups" style="display:none">
+        <div class="card"><div class="card-header"><h3>🏆 المجموعات المتصدرة</h3></div>
+          <div class="table-wrapper"><table class="table" id="groupsTable">
+            <thead><tr><th>المركز</th><th>المجموعة</th><th>النقاط</th></tr></thead>
+            <tbody id="groupsTbody"></tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== HOMEWORK PAGE ===== -->
+    <div class="page-section" id="section-homework">
+      <div class="section-header">
+        <div class="section-title">📚 الواجبات</div>
+        <div class="flex gap-1" style="flex-wrap:wrap">
+          <button class="btn btn-primary btn-sm" onclick="navigate('add-homework')">➕ إضافة واجب جديد</button>
+          <button class="btn btn-gray btn-sm" onclick="confirmClearHomework()">🗑 حذف السجل</button>
+        </div>
+      </div>
+
+      <div class="tabs">
+        <div class="tab active" onclick="switchHwTab('sent')">📤 الواجبات المرسلة</div>
+        <div class="tab" onclick="switchHwTab('done')">✅ الواجبات المنتهية</div>
+      </div>
+
+      <div id="hwTab-sent" class="hw-tab">
+        <div id="sentHwList"><div class="no-data"><div class="no-data-icon">📤</div><p>لا توجد واجبات مرسلة</p></div></div>
+      </div>
+      <div id="hwTab-done" class="hw-tab" style="display:none">
+        <div id="doneHwList"><div class="no-data"><div class="no-data-icon">✅</div><p>لا توجد واجبات منتهية</p></div></div>
+      </div>
+    </div>
+
+    <!-- ===== ADD HOMEWORK PAGE ===== -->
+    <div class="page-section" id="section-add-homework">
+      <button class="back-btn-top" onclick="navigate('homework')">← رجوع</button>
+      <div class="section-title mb-2">➕ إضافة واجب جديد</div>
+
+      <div class="card">
+        <div class="card-body">
+          <div class="form-group">
+            <label class="form-label">📝 عنوان الواجب</label>
+            <input type="text" class="form-input" id="hwTitle" placeholder="أدخل عنوان الواجب">
+          </div>
+          <div class="form-group">
+            <label class="form-label">🔗 ربط بلقاء (اختياري)</label>
+            <select class="form-select" id="hwLinkMeeting">
+              <option value="">بدون ربط بلقاء</option>
+            </select>
+          </div>
+          <div class="separator"></div>
+          <div id="questionsContainer"></div>
+          <button class="btn btn-outline btn-sm mt-1" onclick="addQuestion()">➕ إضافة سؤال جديد</button>
+          <div class="separator"></div>
+          <div class="flex gap-2" style="flex-wrap:wrap;align-items:center">
+            <div>
+              <label class="form-label" style="margin-bottom:4px">📅 آخر موعد للتسليم</label>
+              <input type="datetime-local" class="form-input" id="hwDeadline" style="direction:ltr">
+            </div>
+            <div>
+              <label class="form-label" style="margin-bottom:4px">⏱ وقت الحل (دقائق)</label>
+              <input type="number" class="form-input" id="hwTimeLimit" placeholder="0 = غير محدد" min="0" style="direction:ltr;width:130px">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hide Grade Option -->
+      <div class="card mt-2">
+        <div class="card-body" style="padding:14px 16px">
+          <label style="display:flex;align-items:center;gap:12px;cursor:pointer;user-select:none">
+            <div style="position:relative;flex-shrink:0">
+              <input type="checkbox" id="hwHideGrade" style="opacity:0;position:absolute;width:0;height:0">
+              <div id="hwHideGradeTrack" onclick="toggleHideGrade()" style="width:46px;height:24px;background:var(--gray-mid);border-radius:12px;transition:0.3s;cursor:pointer">
+                <div id="hwHideGradeThumb" style="width:20px;height:20px;background:var(--white);border-radius:50%;position:absolute;top:2px;right:2px;transition:0.3s;box-shadow:0 1px 4px rgba(0,0,0,0.2)"></div>
+              </div>
+            </div>
+            <div>
+              <div style="font-weight:700;font-size:0.88rem;color:var(--navy)">🔒 إخفاء الدرجات والإجابات</div>
+              <div style="font-size:0.75rem;color:var(--gray);margin-top:2px">لن يرى الطلاب درجتهم أو الإجابات الصحيحة والخاطئة</div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div class="flex gap-2 mt-2" style="justify-content:flex-end">
+        <button class="btn btn-primary" onclick="submitHomework()">📤 إرسال الواجب</button>
+      </div>
+    </div>
+
+    <!-- ===== STUDENTS PAGE ===== -->
+    <div class="page-section" id="section-students">
+      <div class="section-header">
+        <div class="section-title">👥 الطلاب</div>
+        <div class="flex gap-1" style="flex-wrap:wrap">
+          <button class="btn btn-primary btn-sm" onclick="showAddStudent()">➕ إضافة طالب جديد</button>
+          <button class="btn btn-gray btn-sm" onclick="confirmClearStudents()">🗑 مسح الكل</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-body" id="studentsList">
+          <div class="no-data"><div class="no-data-icon">👥</div><p>لا يوجد طلاب مسجلون</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== MEETINGS PAGE ===== -->
+    <div class="page-section" id="section-meetings">
+      <div class="section-header">
+        <div class="section-title">📅 إعلان اللقاءات</div>
+        <div class="flex gap-1" style="flex-wrap:wrap">
+          <button class="btn btn-primary btn-sm" onclick="navigate('add-meeting')">➕ أضف لقاء جديد</button>
+          <button class="btn btn-gray btn-sm" onclick="confirmClearMeetings()">🗑 مسح الكل</button>
+        </div>
+      </div>
+      <div class="tabs">
+        <div class="tab active" onclick="switchMeetingTab('upcoming')">📅 اللقاءات القادمة</div>
+        <div class="tab" onclick="switchMeetingTab('past')">📜 اللقاءات السابقة</div>
+      </div>
+      <div id="meetingTab-upcoming">
+        <div id="upcomingMeetings"><div class="no-data"><div class="no-data-icon">📅</div><p>لا توجد لقاءات قادمة</p></div></div>
+      </div>
+      <div id="meetingTab-past" style="display:none">
+        <div id="pastMeetings"><div class="no-data"><div class="no-data-icon">📜</div><p>لا توجد لقاءات سابقة</p></div></div>
+      </div>
+    </div>
+
+    <!-- ===== ADD MEETING PAGE ===== -->
+    <div class="page-section" id="section-add-meeting">
+      <button class="back-btn-top" onclick="navigate('meetings')">← رجوع</button>
+      <div class="section-title mb-2">➕ إضافة لقاء جديد</div>
+      <div class="card">
+        <div class="card-body">
+          <div class="form-group">
+            <label class="form-label">📝 عنوان اللقاء (اختياري)</label>
+            <input type="text" class="form-input" id="meetingTitle" placeholder="أدخل عنوان اللقاء">
+          </div>
+          <div class="form-group">
+            <label class="form-label">📅 التاريخ والوقت</label>
+            <input type="datetime-local" class="form-input" id="meetingDateTime" style="direction:ltr">
+          </div>
+        </div>
+      </div>
+      <div class="flex gap-2 mt-2" style="justify-content:flex-end">
+        <button class="btn btn-primary" onclick="saveMeeting()">💾 حفظ اللقاء</button>
+      </div>
+    </div>
+
+    <!-- ===== ATTENDANCE PAGE ===== -->
+    <div class="page-section" id="section-attendance">
+      <button class="back-btn-top" id="attendanceBackBtn" onclick="navigate('meetings')">← رجوع</button>
+      <div class="section-title mb-2" id="attendanceTitle">📋 تحضير الطلاب</div>
+      <div id="attendanceList"><div class="no-data"><div class="no-data-icon">👥</div><p>لا يوجد طلاب</p></div></div>
+      <div class="flex gap-2 mt-2" style="justify-content:flex-end">
+        <button class="btn btn-primary" onclick="saveAttendance()">💾 حفظ التحضير</button>
+      </div>
+    </div>
+
+    <!-- ===== POINTS PAGE ===== -->
+    <div class="page-section" id="section-points">
+      <div class="section-header">
+        <div class="section-title">⭐ النقاط</div>
+        <button class="btn btn-gray btn-sm" onclick="confirmClearPoints()">🗑 مسح النقاط</button>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <h3>⭐ تسجيل نقاط المبادرات</h3>
+          <select class="form-select" style="width:auto;padding:4px 8px;font-size:0.82rem" id="pointsMeetingSelect">
+            <option value="">بدون ربط بلقاء</option>
+          </select>
+        </div>
+        <div class="card-body" id="pointsList">
+          <div class="no-data"><div class="no-data-icon">⭐</div><p>لا يوجد طلاب</p></div>
+        </div>
+      </div>
+      <div class="flex mt-2" style="justify-content:flex-end">
+        <button class="btn btn-primary" onclick="savePoints()">💾 إضافة النقاط</button>
+      </div>
+    </div>
+
+    <!-- ===== MEMORIZATION PAGE ===== -->
+    <div class="page-section" id="section-memorization">
+      <div class="section-header">
+        <div class="section-title">📖 مقرر التسميع</div>
+        <button class="btn btn-gray btn-sm" onclick="confirmClearMemo()">🗑 مسح الأرقام</button>
+      </div>
+      <!-- Compact target display (shown after saving) -->
+      <div class="card mb-2" id="memoTargetCompact" style="display:none">
+        <div class="card-body" style="padding:12px 16px">
+          <div class="flex-between">
+            <div class="flex gap-2" style="align-items:center">
+              <span style="font-size:1rem">🎯</span>
+              <span style="font-weight:700;color:var(--navy)">الرقم المستهدف:</span>
+              <span id="memoTargetCompactNum" style="font-size:1.3rem;font-weight:900;color:var(--gold)">—</span>
+            </div>
+            <button class="btn btn-outline btn-sm" onclick="showMemoTargetEdit()">✏️ تعديل</button>
+          </div>
+        </div>
+      </div>
+      <!-- Edit target form (shown when editing) -->
+      <div class="card mb-2" id="memoTargetEditCard">
+        <div class="card-header">
+          <h3>🔢 الرقم المستهدف (الثابت)</h3>
+        </div>
+        <div class="card-body">
+          <div class="flex gap-2" style="align-items:center;flex-wrap:wrap">
+            <input type="number" class="form-input" id="memoTarget" placeholder="أدخل الرقم المستهدف" style="direction:ltr;max-width:150px" min="0">
+            <button class="btn btn-primary btn-sm" id="memoTargetBtn" onclick="saveMemoTarget()">💾 حفظ الرقم</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>📊 تقييم الطلاب</h3></div>
+        <div class="card-body" id="memoStudentList">
+          <div class="no-data"><div class="no-data-icon">📖</div><p>لا يوجد طلاب</p></div>
+        </div>
+      </div>
+      <div class="flex mt-2" style="justify-content:flex-end">
+        <button class="btn btn-primary" onclick="saveMemoScores()">💾 حفظ الأرقام</button>
+      </div>
+    </div>
+
+    <!-- ===== GROUPS PAGE ===== -->
+    <div class="page-section" id="section-groups">
+      <div class="section-header">
+        <div class="section-title">🏆 المجموعات</div>
+        <div class="flex gap-1">
+          <button class="btn btn-primary btn-sm" onclick="showAddGroup()">➕ إضافة مجموعة</button>
+          <button class="btn btn-gray btn-sm" onclick="confirmClearGroupPoints()">🗑 مسح النقاط</button>
+        </div>
+      </div>
+      <div id="groupsList">
+        <div class="no-data"><div class="no-data-icon">🏆</div><p>لا توجد مجموعات</p></div>
+      </div>
+    </div>
+
+    <!-- ===== SEERAH PAGE ===== -->
+    <div class="page-section" id="section-seerah">
+      <div class="section-header">
+        <div class="section-title">🕌 درس السيرة</div>
+        <div class="flex gap-1" style="flex-wrap:wrap">
+          <button class="btn btn-primary btn-sm" onclick="navigate('add-lesson')">➕ إضافة درس جديد</button>
+          <button class="btn btn-gray btn-sm" onclick="confirmClearLessons()">🗑 مسح السجل</button>
+        </div>
+      </div>
+      <div id="lessonsList">
+        <div class="no-data"><div class="no-data-icon">🕌</div><p>لا توجد دروس مسجلة</p></div>
+      </div>
+    </div>
+
+    <!-- ===== ADD LESSON PAGE ===== -->
+    <div class="page-section" id="section-add-lesson">
+      <button class="back-btn-top" id="lessonBackBtn" onclick="navigate('seerah')">← رجوع</button>
+      <div class="section-title mb-2" id="lessonFormTitle">➕ إضافة درس جديد</div>
+      <input type="hidden" id="editLessonId">
+      <div class="card">
+        <div class="card-body">
+          <div class="form-group">
+            <label class="form-label">📝 عنوان الدرس</label>
+            <input type="text" class="form-input" id="lessonTitle" placeholder="أدخل عنوان الدرس">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">🎥 مصدر الفيديو</label>
+            <div class="flex gap-2" style="margin-bottom:8px">
+              <button type="button" class="btn btn-sm" id="ytSourceBtn" onclick="setVideoSource('youtube')" style="background:var(--navy);color:var(--gold);border:1.5px solid var(--gold)">▶️ رابط يوتيوب</button>
+              <button type="button" class="btn btn-sm" id="uploadSourceBtn" onclick="setVideoSource('upload')" style="background:var(--white);color:var(--navy);border:1.5px solid var(--gray-mid)">📁 رفع فيديو</button>
+            </div>
+            <div id="ytUrlSection" style="display:none">
+              <input type="url" class="form-input" id="lessonYtUrl" placeholder="https://youtube.com/watch?v=...">
+            </div>
+            <div id="uploadVideoSection" style="display:none">
+              <label class="file-picker-area" id="videoPickerArea"
+                onclick="document.getElementById('lessonVideoFile').click()"
+                ondragover="event.preventDefault();this.style.borderColor='var(--gold)';this.style.background='rgba(201,162,39,0.12)'"
+                ondragleave="this.style.borderColor='';this.style.background=''"
+                ondrop="event.preventDefault();this.style.borderColor='';this.style.background='';onVideoFileDrop(event)">
+                <div class="file-picker-icon">🎥</div>
+                <div class="file-picker-title">اضغط أو اسحب ملف الفيديو هنا</div>
+                <div class="file-picker-sub">MP4 · MKV · MOV · AVI · 3GP</div>
+                <div id="videoPickerName" class="file-picker-chosen" style="display:none"></div>
+              </label>
+              <input type="file" id="lessonVideoFile" accept="video/mp4,video/mkv,video/mov,video/avi,video/3gp,.mkv,.mp4,.mov,.avi,.3gp" style="display:none" onchange="onVideoFileChange(this)">
+              <div id="uploadProgress" style="margin-top:8px;display:none">
+                <div style="height:8px;background:var(--gray-mid);border-radius:4px;overflow:hidden">
+                  <div id="uploadProgressBar" style="height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-dark));width:0%;transition:width 0.3s ease;border-radius:4px"></div>
+                </div>
+                <div id="uploadProgressText" style="font-size:0.78rem;color:var(--gray);margin-top:4px;text-align:center">جاري الرفع...</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">📄 ملف PDF (اختياري)</label>
+            <label class="file-picker-area file-picker-sm" id="pdfPickerArea"
+              onclick="document.getElementById('lessonPdfFile').click()"
+              ondragover="event.preventDefault();this.style.borderColor='var(--gold)';this.style.background='rgba(201,162,39,0.12)'"
+              ondragleave="this.style.borderColor='';this.style.background=''"
+              ondrop="event.preventDefault();this.style.borderColor='';this.style.background='';onPdfFileDrop(event)">
+              <div class="file-picker-icon">📄</div>
+              <div class="file-picker-title">اضغط أو اسحب ملف PDF هنا</div>
+              <div id="pdfPickerName" class="file-picker-chosen" style="display:none"></div>
+            </label>
+            <input type="file" id="lessonPdfFile" accept=".pdf" style="display:none" onchange="onPdfFileChange(this)">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">📝 موضوع الدرس</label>
+            <textarea class="form-textarea" id="lessonTopic" placeholder="اكتب موضوع الدرس..." rows="4"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">📚 ربط بواجب (اختياري)</label>
+            <select class="form-select" id="lessonLinkHw">
+              <option value="">بدون واجب مرتبط</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">📅 ربط بلقاء (اختياري)</label>
+            <select class="form-select" id="lessonLinkMeeting">
+              <option value="">بدون لقاء مرتبط</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="flex gap-2 mt-2" style="justify-content:flex-end">
+        <button class="btn btn-primary" id="lessonSaveBtn" onclick="saveLesson()">📤 إرسال الدرس</button>
+      </div>
+    </div>
+
+
+    <!-- ===== TEACHERS PAGE ===== -->
+    <div class="page-section" id="section-teachers">
+      <div class="section-header">
+        <div class="section-title">👨‍🏫 المعلمون المسجلون</div>
+        <button class="btn btn-primary btn-sm" onclick="showAddTeacherModal()">➕ إضافة معلم جديد</button>
+      </div>
+      <div class="card">
+        <div class="card-body" id="teachersList">
+          <div class="no-data"><div class="no-data-icon">👨‍🏫</div><p>لا يوجد معلمون</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== REPORT CREATE PAGE ===== -->
+    <div class="page-section" id="section-create-report">
+      <button class="back-btn-top" onclick="navigate('home')">← رجوع</button>
+      <div class="section-title mb-2">📋 إنشاء تقرير جديد</div>
+      <div class="card">
+        <div class="card-body">
+          <div class="form-group">
+            <label class="form-label">📝 اسم التقرير (اختياري)</label>
+            <input type="text" class="form-input" id="reportTitle" placeholder="اتركه فارغاً للتسمية التلقائية">
+          </div>
+          <div class="form-group">
+            <label class="form-label">📅 من تاريخ</label>
+            <input type="date" class="form-input" id="reportFrom" style="direction:ltr">
+          </div>
+          <div class="form-group">
+            <label class="form-label">📅 إلى تاريخ</label>
+            <input type="date" class="form-input" id="reportTo" style="direction:ltr">
+          </div>
+        </div>
+      </div>
+      <div class="flex mt-2" style="justify-content:flex-end">
+        <button class="btn btn-primary" onclick="generateReport()">📊 إنشاء التقرير</button>
+      </div>
+    </div>
+
+    <!-- ===== REPORT VIEW PAGE ===== -->
+    <div class="page-section" id="section-view-report">
+      <button class="back-btn-top" onclick="navigate('home')">← رجوع</button>
+      <div id="reportContent"></div>
+    </div>
+
+  </div><!-- end page-content -->
+
+  <!-- Footer -->
+  <footer class="footer">
+    جميع الحقوق محفوظة لـ <span class="footer-brand">نادي غرس</span> © 2026
+  </footer>
+</div><!-- end main-content -->
+
+<!-- Toast container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="js/firebase-config.js"></script>
+<script src="js/teacher.js"></script>
+</body>
+</html>

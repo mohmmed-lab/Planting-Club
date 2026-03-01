@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>نادي غرس - تسجيل الدخول</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Tajawal', sans-serif;
+  direction: rtl;
+  min-height: 100vh;
+  background: #0a1628;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Animated background */
+.bg-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(201,162,39,0.15);
+  animation: floatParticle linear infinite;
+}
+
+.glow-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  animation: pulse 4s ease-in-out infinite;
+}
+
+.glow-orb-1 { width: 400px; height: 400px; background: rgba(201,162,39,0.08); top: -100px; right: -100px; }
+.glow-orb-2 { width: 300px; height: 300px; background: rgba(13,31,60,0.6); bottom: -50px; left: -50px; animation-delay: 2s; }
+
+/* Grid lines */
+.grid-lines {
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(201,162,39,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(201,162,39,0.04) 1px, transparent 1px);
+  background-size: 60px 60px;
+  z-index: 0;
+}
+
+/* Main container */
+.login-wrapper {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 420px;
+  padding: 20px;
+  animation: slideUp 0.6s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+/* Logo Section */
+.logo-section {
+  text-align: center;
+  margin-bottom: 28px;
+  animation: slideDown 0.6s ease 0.1s both;
+}
+
+.logo-circle {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, #c9a227, #a07d10);
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 14px;
+  box-shadow: 0 10px 40px rgba(201,162,39,0.4), 0 0 0 8px rgba(201,162,39,0.1);
+  animation: glow 2.5s ease-in-out infinite, float 3s ease-in-out infinite;
+  font-size: 2.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.logo-circle::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.3) 0%, transparent 60%);
+  border-radius: inherit;
+}
+
+.club-name {
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: #c9a227;
+  text-shadow: 0 0 30px rgba(201,162,39,0.5), 0 0 60px rgba(201,162,39,0.2);
+  letter-spacing: 2px;
+  margin-bottom: 6px;
+}
+
+.club-subtitle {
+  font-size: 0.82rem;
+  color: rgba(255,255,255,0.5);
+  font-weight: 400;
+  letter-spacing: 1px;
+}
+
+/* Card */
+.login-card { animation: loginCardIn 0.7s cubic-bezier(0.34,1.56,0.64,1) forwards, glowPulse 3s ease-in-out 1s infinite;
+  background: rgba(255,255,255,0.97);
+  border-radius: 24px;
+  padding: 32px 28px;
+  box-shadow:
+    0 30px 80px rgba(0,0,0,0.4),
+    0 0 0 1px rgba(201,162,39,0.2),
+    inset 0 1px 0 rgba(255,255,255,0.8);
+  animation: slideUp 0.6s cubic-bezier(0.34,1.56,0.64,1) 0.2s both;
+  position: relative;
+  overflow: hidden;
+}
+
+.login-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #c9a227, #e8c84a, #c9a227);
+  background-size: 200% 100%;
+  animation: shimmer 2s linear infinite;
+}
+
+.card-title {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #0a1628;
+  margin-bottom: 24px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.card-title::before {
+  content: '';
+  width: 30px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #c9a227);
+}
+.card-title::after {
+  content: '';
+  width: 30px;
+  height: 2px;
+  background: linear-gradient(90deg, #c9a227, transparent);
+}
+
+/* Form */
+.form-group { margin-bottom: 18px; position: relative; }
+
+.form-label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #0a1628;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 13px 16px 13px 46px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-family: 'Tajawal', sans-serif;
+  font-size: 0.92rem;
+  color: #0a1628;
+  background: #f8fafc;
+  transition: all 0.3s ease;
+  outline: none;
+  direction: rtl;
+}
+
+.form-input:focus {
+  border-color: #c9a227;
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(201,162,39,0.15), 0 4px 12px rgba(201,162,39,0.1);
+  transform: translateY(-1px);
+}
+
+.input-icon {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+  font-size: 1rem;
+  color: #8892a4;
+  pointer-events: none;
+  transition: color 0.3s ease;
+}
+
+.form-group:focus-within .input-icon { color: #c9a227; }
+
+.pass-toggle {
+  position: absolute;
+  left: 44px;
+  bottom: 12px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: #8892a4;
+  background: none;
+  border: none;
+  padding: 4px;
+  transition: color 0.2s;
+}
+.pass-toggle:hover { color: #c9a227; }
+
+/* Login button */
+.login-btn {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #c9a227, #a07d10);
+  color: #0a1628;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Tajawal', sans-serif;
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 25px rgba(201,162,39,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  position: relative;
+  overflow: hidden;
+  letter-spacing: 0.5px;
+  margin-top: 8px;
+}
+
+.login-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.15);
+  transform: translateX(-100%) skewX(-15deg);
+  transition: transform 0.4s ease;
+}
+
+.login-btn:hover::before { transform: translateX(100%) skewX(-15deg); }
+
+.login-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 35px rgba(201,162,39,0.55);
+}
+
+.login-btn:active { transform: scale(0.98); }
+
+.login-btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+
+/* Error message */
+.error-msg {
+  background: #fff5f5;
+  border: 1px solid rgba(229,62,62,0.3);
+  border-radius: 10px;
+  padding: 10px 14px;
+  color: #c53030;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  animation: shake 0.4s ease;
+}
+
+/* Loader in button */
+.btn-loader {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(10,22,40,0.3);
+  border-top-color: #0a1628;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+/* Footer */
+.login-footer {
+  text-align: center;
+  margin-top: 20px;
+  color: rgba(255,255,255,0.4);
+  font-size: 0.75rem;
+  animation: fadeIn 0.6s ease 0.4s both;
+}
+
+.login-footer .brand { color: #c9a227; font-weight: 700; }
+
+/* Floating badges */
+.floating-badge {
+  position: fixed;
+  background: rgba(201,162,39,0.1);
+  border: 1px solid rgba(201,162,39,0.2);
+  border-radius: 12px;
+  padding: 6px 12px;
+  color: rgba(201,162,39,0.7);
+  font-size: 0.72rem;
+  font-weight: 600;
+  backdrop-filter: blur(10px);
+  pointer-events: none;
+  animation: floatBadge 5s ease-in-out infinite;
+}
+
+.floating-badge-1 { top: 15%; right: 8%; animation-delay: 0s; }
+.floating-badge-2 { top: 25%; left: 8%; animation-delay: 1.5s; }
+.floating-badge-3 { bottom: 20%; right: 10%; animation-delay: 3s; }
+
+/* Animations */
+@keyframes floatParticle {
+  0% { transform: translateY(100vh) scale(0); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 0.5; }
+  100% { transform: translateY(-100vh) scale(1.5); opacity: 0; }
+}
+
+@keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+@keyframes pulse { 0%,100% { opacity:0.7; transform: scale(1); } 50% { opacity:1; transform: scale(1.05); } }
+@keyframes glow { 0%,100% { box-shadow: 0 10px 40px rgba(201,162,39,0.4),0 0 0 8px rgba(201,162,39,0.1); } 50% { box-shadow: 0 10px 60px rgba(201,162,39,0.6),0 0 0 12px rgba(201,162,39,0.2); } }
+@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+@keyframes slideUp { from { opacity:0; transform: translateY(30px) scale(0.96); } to { opacity:1; transform: translateY(0) scale(1); } }
+@keyframes slideDown { from { opacity:0; transform: translateY(-20px); } to { opacity:1; transform: translateY(0); } }
+@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+@keyframes floatBadge { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+@media (max-width: 480px) {
+  .login-wrapper { padding: 14px; }
+  .login-card { padding: 24px 18px; border-radius: 20px; }
+  .club-name { font-size: 1.8rem; }
+  .logo-circle { width: 68px; height: 68px; font-size: 2rem; }
+  .floating-badge { display: none; }
+}
+
+@keyframes loginCardIn {
+  0% { opacity:0; transform:translateY(40px) scale(0.95); }
+  60% { transform:translateY(-6px) scale(1.01); }
+  100% { opacity:1; transform:translateY(0) scale(1); }
+}
+@keyframes logoFloat {
+  0%,100% { transform:translateY(0) rotate(-2deg); }
+  50% { transform:translateY(-8px) rotate(2deg); }
+}
+@keyframes glowPulse {
+  0%,100% { box-shadow:0 0 30px rgba(201,162,39,0.2),0 20px 60px rgba(0,0,0,0.4); }
+  50% { box-shadow:0 0 50px rgba(201,162,39,0.45),0 20px 60px rgba(0,0,0,0.4); }
+}
+@keyframes shake {
+  0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}
+}
+
+</style>
+</head>
+<body>
+
+<div class="bg-canvas">
+  <div class="grid-lines"></div>
+  <div class="glow-orb glow-orb-1"></div>
+  <div class="glow-orb glow-orb-2"></div>
+</div>
+
+<div class="floating-badge floating-badge-1">🌱 نادي غرس</div>
+<div class="floating-badge floating-badge-2">✨ منصة التعليم</div>
+<div class="floating-badge floating-badge-3">🏆 نادي متميز</div>
+
+<div class="login-wrapper">
+  <div class="logo-section">
+    <div class="logo-circle">🌱</div>
+    <div class="club-name">نادي غرس</div>
+    <div class="club-subtitle">قيم تغرس وجيل يبنى</div>
+  </div>
+
+  <div class="login-card">
+    <div class="card-title">تسجيل الدخول</div>
+
+    <div id="errorMsg" class="error-msg" style="display:none">
+      <span>⚠️</span>
+      <span id="errorText"></span>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">
+        <span>👤</span> اسم المستخدم
+      </label>
+      <input type="text" id="username" class="form-input" placeholder="أدخل اسم المستخدم" autocomplete="username" autocorrect="off" autocapitalize="off" spellcheck="false">
+      <span class="input-icon">@</span>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">
+        <span>🔒</span> كلمة المرور
+      </label>
+      <input type="password" id="password" class="form-input" placeholder="أدخل كلمة المرور" autocomplete="current-password">
+      <span class="input-icon">🔑</span>
+      <button type="button" class="pass-toggle" id="passToggle" title="إظهار/إخفاء">👁</button>
+    </div>
+
+    <button class="login-btn" id="loginBtn" onclick="handleLogin()">
+      <span>الدخول</span>
+      <span>🚀</span>
+    </button>
+  </div>
+</div>
+
+<div class="login-footer">
+  جميع الحقوق محفوظة لـ <span class="brand">نادي غرس</span> © 2026
+</div>
+
+<!-- Scripts -->
+<script src="js/firebase-config.js"></script>
+<script>
+// Generate particles
+document.addEventListener('DOMContentLoaded', () => {
+  const canvas = document.querySelector('.bg-canvas');
+  for (let i = 0; i < 18; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = Math.random() * 6 + 2;
+    p.style.cssText = `
+      width:${size}px;height:${size}px;
+      left:${Math.random()*100}%;
+      animation-duration:${Math.random()*12+8}s;
+      animation-delay:${Math.random()*8}s;
+      opacity:${Math.random()*0.5+0.1};
+    `;
+    canvas.appendChild(p);
+  }
+
+  // Check existing session
+  Auth.init();
+  if (Auth.currentUser) {
+    redirectUser(Auth.currentUser);
+    return;
+  }
+
+  // Enter key
+  document.getElementById('password').addEventListener('keydown', e => {
+    if (e.key === 'Enter') handleLogin();
+  });
+  document.getElementById('username').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('password').focus();
+  });
+
+  // Password toggle
+  document.getElementById('passToggle').addEventListener('click', () => {
+    const pwd = document.getElementById('password');
+    pwd.type = pwd.type === 'password' ? 'text' : 'password';
+    document.getElementById('passToggle').textContent = pwd.type === 'password' ? '👁' : '🙈';
+  });
+});
+
+function handleLogin() {
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value.trim();
+  hideError();
+  if (!username || !password) { showError('يرجى إدخال اسم المستخدم وكلمة المرور'); return; }
+  const result = Auth.login(username, password);
+  if (result.ok) {
+    document.getElementById('loginBtn').disabled = true;
+    document.getElementById('loginBtn').innerHTML = '✅ جاري الدخول...';
+    redirectUser(result.user);
+  } else {
+    showError(result.msg || 'اسم المستخدم أو كلمة المرور غير صحيحة');
+    const card = document.querySelector('.login-card');
+    if (card) { card.style.animation = 'none'; card.offsetHeight; card.style.animation = 'shake 0.4s ease'; }
+  }
+}
+
+function redirectUser(user) {
+  if (user.role === 'student') {
+    window.location.href = 'student.html';
+  } else {
+    window.location.href = 'teacher.html';
+  }
+}
+
+function showError(msg) {
+  document.getElementById('errorMsg').style.display = 'flex';
+  document.getElementById('errorText').textContent = msg;
+}
+
+function hideError() {
+  document.getElementById('errorMsg').style.display = 'none';
+}
+</script>
+</body>
+</html>

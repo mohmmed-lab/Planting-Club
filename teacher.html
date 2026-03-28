@@ -1,0 +1,1788 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<meta http-equiv="X-Frame-Options" content="DENY">
+<meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=()">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>نادي غرس - لوحة المعلم</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+<style>
+/* إخفاء المحتوى كاملاً أثناء التحقق من المصادقة — يمنع الوميض */
+body.app-loading .layout-wrapper,
+body.app-loading .sidebar,
+body.app-loading .sidebar-overlay { opacity: 0; pointer-events: none; }
+
+/* ====== شاشة التحميل الاحترافية ====== */
+#ghars-loader {
+  position: fixed; inset: 0; z-index: 999999;
+  background: transparent;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 0;
+  transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+#ghars-loader.hide {
+  opacity: 0; visibility: hidden; pointer-events: none;
+}
+#ghars-loader .gl-grid { display: none; }
+#ghars-loader .gl-orb,
+#ghars-loader .gl-orb-1,
+#ghars-loader .gl-orb-2 { display: none; }
+#ghars-loader .gl-content {
+  position: relative; z-index: 2;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 28px;
+  animation: glFadeIn 0.6s ease both;
+}
+#ghars-loader .gl-ring-wrap {
+  position: relative; width: 110px; height: 110px;
+  display: flex; align-items: center; justify-content: center;
+}
+#ghars-loader .gl-ring {
+  position: absolute; inset: 0;
+  border-radius: 50%;
+  border: 2.5px solid transparent;
+  border-top-color: #c9a227;
+  border-right-color: rgba(201,162,39,0.4);
+  animation: glSpin 1.1s linear infinite;
+}
+#ghars-loader .gl-ring-inner {
+  position: absolute; inset: 8px;
+  border-radius: 50%;
+  border: 1.5px solid transparent;
+  border-bottom-color: rgba(201,162,39,0.5);
+  border-left-color: rgba(201,162,39,0.2);
+  animation: glSpin 1.8s linear infinite reverse;
+}
+#ghars-loader .gl-logo-box {
+  width: 74px; height: 74px;
+  background: linear-gradient(135deg, #c9a227, #a07d10);
+  border-radius: 20px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2.1rem;
+  box-shadow: 0 0 0 6px rgba(201,162,39,0.12), 0 8px 30px rgba(201,162,39,0.35);
+  animation: glLogoPulse 2.5s ease-in-out infinite;
+  position: relative; overflow: hidden;
+}
+#ghars-loader .gl-logo-box::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.28) 0%, transparent 55%);
+  border-radius: inherit;
+}
+/* ══ نص نادي غرس — أنيميشن الالتقاء من الجانبين ══ */
+#ghars-loader .gl-title {
+  font-family: 'Tajawal', sans-serif;
+  font-size: 2.8rem;
+  font-weight: 900;
+  color: #c9a227;
+  letter-spacing: 4px;
+  text-align: center;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  overflow: visible;
+}
+#ghars-loader .gl-word-r {
+  display: inline-block;
+  animation: glFromRight 0.9s cubic-bezier(0.22,1,0.36,1) 0.5s both;
+}
+#ghars-loader .gl-word-l {
+  display: inline-block;
+  animation: glFromLeft 0.9s cubic-bezier(0.22,1,0.36,1) 0.5s both;
+}
+#ghars-loader .gl-title-inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  animation: glMeetGlow 1.2s ease 1.35s both;
+}
+#ghars-loader .gl-sep {
+  display: inline-block;
+  width: 6px; height: 6px;
+  background: #c9a227;
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(201,162,39,0.8);
+  opacity: 0;
+  transform: scale(0);
+  animation: glSepPop 0.5s cubic-bezier(0.34,1.56,0.64,1) 1.38s both;
+}
+#ghars-loader .gl-title-line {
+  position: absolute;
+  bottom: -8px; left: 50%;
+  transform: translateX(-50%) scaleX(0);
+  width: 100%; height: 2px;
+  background: linear-gradient(90deg, transparent, #c9a227, rgba(248,212,70,0.9), #c9a227, transparent);
+  border-radius: 2px;
+  animation: glLineExpand 0.6s ease 1.5s both;
+  filter: blur(0.5px);
+}
+@keyframes glFromRight {
+  0%   { transform: translateX(160px); opacity: 0; filter: blur(8px); }
+  50%  { opacity: 1; filter: blur(1px); }
+  75%  { transform: translateX(-6px); filter: blur(0); }
+  88%  { transform: translateX(4px); }
+  100% { transform: translateX(0); opacity: 1; filter: blur(0); }
+}
+@keyframes glFromLeft {
+  0%   { transform: translateX(-160px); opacity: 0; filter: blur(8px); }
+  50%  { opacity: 1; filter: blur(1px); }
+  75%  { transform: translateX(6px); filter: blur(0); }
+  88%  { transform: translateX(-4px); }
+  100% { transform: translateX(0); opacity: 1; filter: blur(0); }
+}
+@keyframes glMeetGlow {
+  0%   { text-shadow: 0 0 20px rgba(201,162,39,0.5); }
+  30%  { text-shadow: 0 0 60px rgba(201,162,39,1), 0 0 100px rgba(201,162,39,0.7), 0 0 160px rgba(201,162,39,0.4); filter: brightness(1.3); }
+  100% { text-shadow: 0 0 25px rgba(201,162,39,0.7), 0 0 55px rgba(201,162,39,0.3); filter: brightness(1); }
+}
+@keyframes glSepPop {
+  0%   { opacity: 0; transform: scale(0); }
+  60%  { opacity: 1; transform: scale(1.6); box-shadow: 0 0 20px rgba(201,162,39,1); }
+  100% { opacity: 1; transform: scale(1); box-shadow: 0 0 8px rgba(201,162,39,0.8); }
+}
+@keyframes glLineExpand {
+  0%   { transform: translateX(-50%) scaleX(0); opacity: 0; }
+  60%  { opacity: 1; }
+  100% { transform: translateX(-50%) scaleX(1); opacity: 1; }
+}
+@keyframes glTitlePulse2 {
+  0%, 100% { text-shadow: 0 0 25px rgba(201,162,39,0.7), 0 0 55px rgba(201,162,39,0.3); }
+  50%       { text-shadow: 0 0 40px rgba(201,162,39,1), 0 0 80px rgba(201,162,39,0.5), 0 0 120px rgba(201,162,39,0.2); }
+}
+#ghars-loader .gl-title::after { display: none; }
+#ghars-loader .gl-bar-wrap {
+  width: 200px; height: 3px;
+  background: rgba(201,162,39,0.15);
+  border-radius: 10px; overflow: hidden;
+}
+#ghars-loader .gl-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #c9a227, #e8c84a, #c9a227);
+  background-size: 200% 100%;
+  border-radius: 10px;
+  animation: glBarMove 1.8s ease-in-out infinite;
+}
+#ghars-loader .gl-dots {
+  display: flex; gap: 7px; align-items: center;
+}
+#ghars-loader .gl-dot {
+  width: 7px; height: 7px;
+  background: rgba(201,162,39,0.4);
+  border-radius: 50%;
+  animation: glDot 1.4s ease-in-out infinite;
+}
+#ghars-loader .gl-dot:nth-child(2) { animation-delay: 0.2s; }
+#ghars-loader .gl-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes glFadeIn { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+@keyframes glSpin { to { transform: rotate(360deg); } }
+@keyframes glLogoPulse {
+  0%, 100% { box-shadow: 0 0 0 6px rgba(201,162,39,0.12), 0 8px 30px rgba(201,162,39,0.35); }
+  50% { box-shadow: 0 0 0 10px rgba(201,162,39,0.18), 0 8px 40px rgba(201,162,39,0.5); }
+}
+@keyframes glTitlePulse {
+  0%, 100% { text-shadow: 0 0 20px rgba(201,162,39,0.6), 0 0 50px rgba(201,162,39,0.25); }
+  50% { text-shadow: 0 0 30px rgba(201,162,39,0.9), 0 0 70px rgba(201,162,39,0.4), 0 0 100px rgba(201,162,39,0.15); }
+}
+@keyframes glShimmer { 0% { left: -100%; } 100% { left: 200%; } }
+@keyframes glBarMove {
+  0% { background-position: 0% 50%; transform: scaleX(0.3); transform-origin: right; }
+  50% { transform: scaleX(1); transform-origin: right; background-position: 100% 50%; }
+  51% { transform-origin: left; }
+  100% { transform: scaleX(0.3); transform-origin: left; background-position: 200% 50%; }
+}
+@keyframes glDot {
+  0%, 80%, 100% { transform: scale(0.7); opacity: 0.4; }
+  40% { transform: scale(1.3); opacity: 1; background: #c9a227; }
+}
+@keyframes glOrb {
+  from { transform: scale(1) translate(0, 0); }
+  to { transform: scale(1.15) translate(15px, -10px); }
+}
+.page-section { display: none; }
+.page-section.active { display: block; animation: fadeIn 0.25s ease; }
+
+/* إخفاء الفوتر في صفحات المحادثة */
+#section-teacher-sharechat.active ~ .layout-wrapper .footer,
+#section-teacher-sharebox.active ~ .footer { display: none !important; }
+
+/* Home page cards */
+.home-stat-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 16px;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--gray-mid);
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+.home-stat-card::before {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--gold), var(--gold-dark));
+}
+.home-stat-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-gold); }
+.home-stat-value { font-size: 1.8rem; font-weight: 800; color: var(--navy); }
+.home-stat-label { font-size: 0.75rem; color: var(--gray); margin-top: 4px; font-weight: 600; }
+.home-stat-icon { font-size: 1.8rem; margin-bottom: 8px; }
+
+/* Student list items */
+.student-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid #f0f4f8;
+  transition: var(--transition-fast);
+  gap: 8px;
+}
+.student-row:last-child { border-bottom: none; }
+.student-row:hover { background: rgba(201,162,39,0.05); }
+.student-name { font-weight: 700; font-size: 0.9rem; color: var(--navy); word-break: break-word; white-space: normal; }
+.student-group { font-size: 0.75rem; color: var(--gray); }
+.student-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+/* HW cards */
+.hw-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  border: 1px solid var(--gray-mid);
+  margin-bottom: 12px;
+  overflow: hidden;
+  transition: var(--transition);
+}
+.hw-card:hover { box-shadow: var(--shadow-md); }
+.hw-card.expired { opacity: 0.6; }
+.hw-card-header {
+  padding: 12px 14px;
+  background: linear-gradient(135deg, var(--navy), var(--navy-light));
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.hw-card-title { font-weight: 700; font-size: 0.9rem; flex: 1; }
+.hw-card-body { padding: 12px 14px; }
+.hw-meta { display: flex; flex-wrap: wrap; gap: 8px; font-size: 0.8rem; color: var(--gray); margin-top: 6px; }
+.hw-meta span { display: flex; align-items: center; gap: 4px; }
+
+/* Meeting cards */
+.meeting-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  border: 1px solid var(--gray-mid);
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.meeting-card-header {
+  padding: 12px 14px;
+  background: linear-gradient(135deg, var(--navy), var(--navy-light));
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.meeting-info { font-size: 0.82rem; color: var(--gold); margin-top: 3px; }
+
+/* Points row */
+.points-row {
+  display: flex;
+  align-items: center;
+  padding: 10px 14px;
+  border-bottom: 1px solid #f0f4f8;
+  gap: 10px;
+}
+.points-row:last-child { border-bottom: none; }
+.points-input-field {
+  width: 80px;
+  padding: 6px 10px;
+  border: 1.5px solid var(--gray-mid);
+  border-radius: var(--radius-sm);
+  font-family: 'Tajawal', sans-serif;
+  font-size: 0.88rem;
+  text-align: center;
+  direction: ltr;
+  outline: none;
+}
+.points-input-field:focus { border-color: var(--gold); box-shadow: 0 0 0 2px var(--gold-glow); }
+.points-total { font-size: 0.82rem; color: var(--gold); font-weight: 700; background: rgba(201,162,39,0.1); padding: 3px 8px; border-radius: 10px; }
+
+/* Group cards */
+.group-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  border: 1px solid var(--gray-mid);
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.group-header {
+  padding: 12px 14px;
+  background: linear-gradient(135deg, var(--navy), var(--navy-light));
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.group-name { font-weight: 700; font-size: 0.95rem; }
+.group-points { color: var(--gold); font-weight: 800; font-size: 1rem; }
+
+/* Seerah lesson card */
+.lesson-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  border: 1px solid var(--gray-mid);
+  margin-bottom: 10px;
+  overflow: hidden;
+  transition: var(--transition);
+}
+.lesson-card:hover { box-shadow: var(--shadow-md); }
+.lesson-header {
+  padding: 12px 14px;
+  background: linear-gradient(135deg, var(--navy), var(--navy-light));
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.lesson-title { font-weight: 700; font-size: 0.9rem; flex: 1; }
+.lesson-viewers { font-size: 0.75rem; color: rgba(255,255,255,0.7); }
+
+/* Memorization row */
+.memo-row {
+  display: flex;
+  align-items: center;
+  padding: 10px 14px;
+  border-bottom: 1px solid #f0f4f8;
+  gap: 10px;
+}
+.memo-row:last-child { border-bottom: none; }
+.memo-input {
+  width: 80px;
+  padding: 6px 10px;
+  border: 1.5px solid var(--gray-mid);
+  border-radius: var(--radius-sm);
+  font-family: 'Tajawal', sans-serif;
+  font-size: 0.88rem;
+  text-align: center;
+  direction: ltr;
+  outline: none;
+}
+.memo-input:focus { border-color: var(--gold); box-shadow: 0 0 0 2px var(--gold-glow); }
+
+/* Section navigator */
+.back-btn-top {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: var(--navy);
+  color: var(--white);
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  border: none;
+  margin-bottom: 16px;
+}
+.back-btn-top:hover { background: var(--navy-light); transform: translateX(3px); }
+
+/* Attendance selector */
+.attend-select {
+  display: flex;
+  gap: 6px;
+}
+.attend-opt {
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1.5px solid var(--gray-mid);
+  transition: var(--transition);
+  background: var(--white);
+}
+.attend-opt:hover { border-color: var(--gold); }
+.attend-opt.selected-present { background: var(--green); color: #fff; border-color: var(--green); }
+.attend-opt.selected-absent { background: var(--red); color: #fff; border-color: var(--red); }
+.attend-opt.selected-excused { background: var(--orange); color: #fff; border-color: var(--orange); }
+
+/* Teacher new card */
+.teacher-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  border: 1px solid var(--gray-mid);
+  margin-bottom: 10px;
+  overflow: hidden;
+  transition: var(--transition);
+}
+.teacher-card:hover { box-shadow: var(--shadow-md); }
+.teacher-card-header {
+  padding: 12px 14px;
+  background: linear-gradient(135deg, var(--navy), var(--navy-light));
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.teacher-card-header h4 { font-size: 0.9rem; font-weight: 700; }
+
+/* Stats accordion */
+.stats-btn-group { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.stats-toggle-btn {
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  border: 1.5px solid var(--gray-mid);
+  color: var(--navy);
+  font-family: 'Tajawal', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.stats-toggle-btn:hover { border-color: var(--gold); color: var(--gold); }
+.stats-toggle-btn.active { background: var(--navy); color: var(--gold); border-color: var(--navy); }
+/* ── stats table wrapper: full width on desktop ── */
+#hwStatsContent .table-wrapper,
+#statsContent-attendance .table-wrapper,
+#statsContent-memorization .table-wrapper,
+#statsContent-points .table-wrapper,
+#statsContent-groups .table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+@media (min-width: 768px) {
+  #hwStatsContent .table-wrapper,
+  #statsContent-attendance .table-wrapper,
+  #statsContent-memorization .table-wrapper,
+  #statsContent-points .table-wrapper,
+  #statsContent-groups .table-wrapper {
+    overflow-x: visible;
+  }
+  #hwStatsContent .table-wrapper table,
+  #statsContent-attendance .table-wrapper table,
+  #statsContent-memorization .table-wrapper table,
+  #statsContent-points .table-wrapper table,
+  #statsContent-groups .table-wrapper table {
+    min-width: 0 !important;
+    width: 100%;
+  }
+}
+
+/* Last seen table */
+.seen-row {
+  display: flex;
+  align-items: center;
+  padding: 10px 14px;
+  border-bottom: 1px solid #f0f4f8;
+  gap: 12px;
+}
+.seen-row:last-child { border-bottom: none; }
+.seen-avatar {
+  width: 34px;
+  height: 34px;
+  background: linear-gradient(135deg, var(--navy), var(--navy-light));
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gold);
+  font-size: 0.8rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.seen-info { flex: 1; min-width: 0; }
+.seen-name { font-weight: 700; font-size: 0.88rem; }
+.seen-time { font-size: 0.75rem; color: var(--gray); }
+.seen-date { font-weight: 700; font-size: 0.8rem; color: var(--navy); }
+
+/* Rank */
+.rank-1 { color: #d4af37; font-weight: 800; }
+.rank-2 { color: #a0a0a0; font-weight: 700; }
+.rank-3 { color: #cd7f32; font-weight: 700; }
+
+/* Question builder */
+.question-block {
+  background: #f8fafc;
+  border-radius: var(--radius);
+  border: 1px solid var(--gray-mid);
+  padding: 16px;
+  margin-bottom: 14px;
+  position: relative;
+}
+.question-num {
+  background: var(--navy);
+  color: var(--gold);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.82rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.choice-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.choice-radio {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--gold);
+  flex-shrink: 0;
+}
+.choice-input {
+  flex: 1;
+  padding: 7px 12px;
+  border: 1.5px solid var(--gray-mid);
+  border-radius: var(--radius-sm);
+  font-family: 'Tajawal', sans-serif;
+  font-size: 0.85rem;
+  outline: none;
+  direction: rtl;
+}
+.choice-input:focus { border-color: var(--gold); }
+.choice-del { color: var(--red); cursor: pointer; font-size: 0.9rem; background: none; border: none; padding: 4px; }
+
+/* Timer display in homework solving */
+.hw-solve-timer {
+  background: linear-gradient(135deg, var(--navy), var(--navy-light));
+  color: var(--gold);
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 1.1rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  display: inline-block;
+  box-shadow: var(--shadow-gold);
+}
+
+/* PDF viewer */
+.pdf-frame {
+  width: 100%;
+  height: 500px;
+  border: none;
+  border-radius: var(--radius-sm);
+}
+
+/* Video container */
+.video-responsive {
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%;
+  background: #000;
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.video-responsive video,
+.video-responsive iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* Report section */
+.report-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  border: 1px solid var(--gray-mid);
+  margin-bottom: 10px;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  transition: var(--transition);
+}
+.report-card:hover { box-shadow: var(--shadow-sm); }
+
+@media (max-width: 768px) {
+  .attend-select { flex-wrap: wrap; }
+  .stats-btn-group { gap: 6px; }
+  .stats-toggle-btn { font-size: 0.8rem; padding: 7px 10px; }
+}
+
+/* File Picker */
+.file-picker-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 2px dashed var(--gold);
+  border-radius: var(--radius);
+  padding: 28px 20px;
+  cursor: pointer;
+  transition: var(--transition);
+  background: rgba(201,162,39,0.04);
+  text-align: center;
+}
+.file-picker-area:hover { background: rgba(201,162,39,0.1); border-color: var(--gold-dark); }
+.file-picker-sm { padding: 16px 20px; }
+.file-picker-icon { font-size: 2.2rem; line-height: 1; }
+.file-picker-sm .file-picker-icon { font-size: 1.5rem; }
+.file-picker-title { font-size: 0.88rem; font-weight: 700; color: var(--navy); }
+.file-picker-sub { font-size: 0.74rem; color: var(--gray); }
+.file-picker-chosen { font-size: 0.82rem; font-weight: 700; color: var(--green); background: var(--green-light); padding: 4px 12px; border-radius: 20px; }
+/* Teacher row */
+.teacher-row { display:flex;align-items:center;gap:12px;padding:12px 4px; }
+.teacher-info { flex:1;min-width:0; }
+.teacher-name { font-weight:700;font-size:0.9rem;color:var(--navy); }
+.teacher-creds { font-size:0.78rem;color:var(--gray);margin-top:2px; }
+
+
+/* Toggle Switch */
+.toggle-track-active { background: var(--gold) !important; }
+.toggle-thumb-active { right: auto !important; left: 2px !important; }
+
+
+@keyframes modalSlideIn {
+  from{opacity:0;transform:translateY(40px) scale(0.95)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+
+/* Comments page styles */
+.comments-teacher-reply {
+  background: linear-gradient(135deg, rgba(201,162,39,0.12), rgba(201,162,39,0.06));
+  border: 2px solid rgba(201,162,39,0.4);
+  border-radius: 16px;
+  padding: 14px;
+  margin-bottom: 10px;
+}
+
+/* Avatar fullscreen overlay animation */
+@keyframes fadeIn { from{opacity:0}to{opacity:1} }
+@keyframes fadeInUp { from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)} }
+
+/* QR card */
+#qrCodeBox canvas, #qrCodeBox img {
+  display: block !important;
+  margin: 0 auto !important;
+}
+
+/* Online/offline indicator in student rows */
+.online-dot  { width:9px;height:9px;border-radius:50%;background:var(--green);box-shadow:0 0 6px rgba(56,161,105,0.6);display:inline-block; animation:pulse-green 2s infinite; }
+.offline-dot { width:9px;height:9px;border-radius:50%;background:var(--gray-mid);display:inline-block; }
+@keyframes pulse-green { 0%,100%{box-shadow:0 0 4px rgba(56,161,105,0.5);} 50%{box-shadow:0 0 10px rgba(56,161,105,0.9);} }
+
+/* Survey submission list */
+.survey-student-row{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #f0f4f8;cursor:pointer;transition:background 0.15s;gap:10px;}
+.survey-student-row:last-child{border-bottom:none;}
+.survey-student-row:hover{background:rgba(201,162,39,0.07);}
+.survey-stars-display{display:flex;gap:3px;font-size:1.1rem;}
+.finish-lesson-btn{background:linear-gradient(135deg,#c9a227,#a07d10);color:#0a1628;border:none;border-radius:10px;padding:9px 18px;font-family:"Tajawal",sans-serif;font-size:0.85rem;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:7px;box-shadow:0 4px 14px rgba(201,162,39,0.35);transition:all 0.2s;margin-top:10px;width:100%;justify-content:center;}
+.finish-lesson-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(201,162,39,0.5);}
+.finish-lesson-btn:disabled{opacity:0.6;cursor:not-allowed;transform:none;}
+
+</style>
+</head>
+<body class="app-loading" style="border:none;padding:0;margin:0;overflow-x:hidden">
+
+<!-- ====== شاشة التحميل نادي غرس ====== -->
+<div id="ghars-loader">
+  <div class="gl-grid"></div>
+  <div class="gl-orb gl-orb-1"></div>
+  <div class="gl-orb gl-orb-2"></div>
+  <div class="gl-content">
+    <div class="gl-ring-wrap">
+      <div class="gl-ring"></div>
+      <div class="gl-ring-inner"></div>
+      <div class="gl-logo-box">🌱</div>
+    </div>
+    <div class="gl-title">
+      <div class="gl-title-inner">
+        <span class="gl-word-r">نادي</span>
+
+        <span class="gl-word-l">غرس</span>
+      </div>
+
+    </div>
+    <div class="gl-bar-wrap"><div class="gl-bar"></div></div>
+    <div class="gl-dots">
+      <div class="gl-dot"></div>
+      <div class="gl-dot"></div>
+      <div class="gl-dot"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Sidebar Overlay -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">🌱</div>
+      <div>
+        <div class="sidebar-club-name">نادي غرس</div>
+        <div style="font-size:0.7rem;color:var(--white-70)" id="sidebarUserName">...</div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-item active" onclick="navigate('home')" data-page="home">
+      <span class="nav-icon">🏠</span> الصفحة الرئيسية
+    </div>
+    <div class="nav-item" onclick="navigate('homework')" data-page="homework">
+      <span class="nav-icon">📚</span> الواجبات
+    </div>
+    <div class="nav-item" onclick="navigate('students')" data-page="students">
+      <span class="nav-icon">👥</span> الطلاب
+    </div>
+    <div class="nav-item" onclick="navigate('meetings')" data-page="meetings">
+      <span class="nav-icon">📅</span> إعلان اللقاءات
+    </div>
+    <div class="nav-item" onclick="navigate('points')" data-page="points">
+      <span class="nav-icon">⭐</span> النقاط
+    </div>
+    <div class="nav-item" onclick="navigate('memorization')" data-page="memorization">
+      <span class="nav-icon">📖</span> مقرر التسميع
+    </div>
+    <div class="nav-item" onclick="navigate('groups')" data-page="groups">
+      <span class="nav-icon">🏆</span> المجموعات
+    </div>
+    <div class="nav-item" onclick="navigate('seerah')" data-page="seerah">
+      <span class="nav-icon">🕌</span> درس السيرة
+    </div>
+    <div class="nav-item" id="addTeacherNavItem" style="display:none" onclick="navigate('teachers')" data-page="teachers">
+      <span class="nav-icon">👨‍🏫</span> المعلمون المسجلون
+    </div>
+  </nav>
+
+  <div class="sidebar-footer">
+    <button class="logout-btn" onclick="Auth.logout()">🚪 تسجيل الخروج</button>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="layout-wrapper">
+<div class="main-content">
+
+  <!-- Top Header -->
+  <div class="top-header">
+    <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+    <div class="header-title">
+      <div class="header-logo-icon">🌱</div>
+      <div class="header-club-name">نادي غرس</div>
+    </div>
+    <div class="header-user">
+      <div class="user-avatar" id="headerAvatar" style="cursor:pointer;overflow:hidden" title="اضغط لتغيير الصورة">م</div>
+      <span id="headerUserName" style="cursor:pointer;user-select:none" title="اضغط لعرض ملفك الشخصي">...</span>
+    </div>
+  </div>
+
+  <!-- Countdown Bar -->
+  <div id="countdownBar" style="display:none" class="countdown-bar">
+    <span style="color:var(--white-70);font-size:0.8rem;white-space:nowrap;flex-shrink:0">⏰ اللقاء القادم:</span>
+    <div style="display:flex;align-items:center;gap:6px;flex:1;justify-content:center;flex-wrap:wrap">
+      <div class="flex-center gap-1">
+        <div class="countdown-item"><span class="countdown-num" id="cdDays">00</span><span class="countdown-label">أيام</span></div>
+        <span class="countdown-sep">:</span>
+        <div class="countdown-item"><span class="countdown-num" id="cdHours">00</span><span class="countdown-label">ساعات</span></div>
+        <span class="countdown-sep">:</span>
+        <div class="countdown-item"><span class="countdown-num" id="cdMins">00</span><span class="countdown-label">دقائق</span></div>
+        <span class="countdown-sep">:</span>
+        <div class="countdown-item"><span class="countdown-num" id="cdSecs">00</span><span class="countdown-label">ثواني</span></div>
+      </div>
+      <span style="color:var(--gold);font-size:0.82rem;font-weight:700;background:rgba(201,162,39,0.15);border:1px solid rgba(201,162,39,0.3);border-radius:20px;padding:3px 12px;white-space:nowrap" id="cdMeetingTitle"></span>
+    </div>
+    <div id="cdGroupTasks" style="display:none;flex-wrap:wrap;gap:5px;align-items:center;margin-top:4px"></div>
+  </div>
+
+  <!-- Page Content -->
+  <div class="page-content">
+
+    <!-- ===== HOME PAGE ===== -->
+    <div class="page-section active" id="section-home">
+      <div class="section-header">
+        <div class="section-title">الصفحة الرئيسية</div>
+        <button class="btn btn-primary btn-sm" onclick="showStatsPage()">📊 إحصائيات الطلاب</button>
+      </div>
+
+      <!-- Quick Stats -->
+      <div class="stats-grid" id="homeStatsGrid">
+        <div class="home-stat-card">
+          <div class="home-stat-icon">👥</div>
+          <div class="home-stat-value" id="statTotalStudents">0</div>
+          <div class="home-stat-label">إجمالي الطلاب</div>
+        </div>
+        <div class="home-stat-card">
+          <div class="home-stat-icon">🏆</div>
+          <div class="home-stat-value" id="statTotalGroups">0</div>
+          <div class="home-stat-label">إجمالي المجموعات</div>
+        </div>
+        <div class="home-stat-card">
+          <div class="home-stat-icon">📖</div>
+          <div class="home-stat-value" id="statTopMemo">-</div>
+          <div class="home-stat-label">المتصدر في النظم</div>
+        </div>
+        <div class="home-stat-card">
+          <div class="home-stat-icon">⭐</div>
+          <div class="home-stat-value" id="statTopPoints">-</div>
+          <div class="home-stat-label">المتصدر في النقاط</div>
+        </div>
+        <div class="home-stat-card">
+          <div class="home-stat-icon">🥇</div>
+          <div class="home-stat-value" id="statTopGroup">-</div>
+          <div class="home-stat-label">المجموعة المتصدرة</div>
+        </div>
+      </div>
+
+      <!-- Last Seen -->
+      <div class="card mt-2">
+        <div class="card-header">
+          <h3>👁 آخر ظهور للطلاب</h3>
+        </div>
+        <div class="card-body" id="lastSeenList">
+          <div class="no-data"><div class="no-data-icon">👤</div><p>لا يوجد طلاب مسجلون بعد</p></div>
+        </div>
+      </div>
+
+      <!-- Reports -->
+      <div class="card mt-2">
+        <div class="card-header">
+          <h3>📋 التقارير</h3>
+          <button class="btn btn-sm" style="background:var(--gold);color:var(--navy);font-weight:700" onclick="showCreateReport()">➕ إنشاء تقرير جديد</button>
+        </div>
+        <div class="card-body" id="reportsList">
+          <div class="no-data"><div class="no-data-icon">📄</div><p>لا توجد تقارير</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== STATS PAGE ===== -->
+    <div class="page-section" id="section-stats">
+      <button class="back-btn-top" onclick="navigate('home')">← رجوع</button>
+      <div class="section-title mb-2">📊 إحصائيات الطلاب</div>
+
+      <div class="stats-btn-group">
+        <button class="stats-toggle-btn" onclick="toggleStats('attendance',{currentTarget:this})">📅 الغياب والحضور</button>
+        <button class="stats-toggle-btn" onclick="toggleStats('homework',{currentTarget:this})">📚 الواجبات</button>
+        <button class="stats-toggle-btn" onclick="toggleStats('memorization',{currentTarget:this})">📖 متصدرو النظم</button>
+        <button class="stats-toggle-btn" onclick="toggleStats('points',{currentTarget:this})">⭐ متصدرو النقاط</button>
+        <button class="stats-toggle-btn" onclick="toggleStats('groups',{currentTarget:this})">🏆 المجموعات المتصدرة</button>
+      </div>
+      
+      <div id="statsContent-attendance" style="display:none">
+        <div class="card"><div class="card-header"><h3>📅 إحصائية الحضور والغياب</h3></div>
+          <div class="table-wrapper"><table class="table" id="attendanceTable">
+            <thead><tr><th>الطالب</th><th>الحضور</th><th>الغياب</th><th>الاستئذان</th></tr></thead>
+            <tbody id="attendanceTbody"></tbody>
+          </table></div>
+          <div class="card-body" style="padding-top:0">
+            <div class="stats-share-wrap"><button class="stats-share-btn" id="attShareBtn">📲 عرض الإحصائية</button></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="statsContent-homework" style="display:none">
+        <div class="card">
+          <div class="card-header">
+            <h3>📚 إحصائية الواجبات</h3>
+            <select class="form-select" style="width:auto;padding:4px 8px;font-size:0.82rem" id="hwStatsSelect" onchange="loadHwStats()">
+              <option value="">اختر الواجب</option>
+            </select>
+          </div>
+          <div class="card-body" id="hwStatsContent">
+            <div class="no-data"><div class="no-data-icon">📚</div><p>اختر واجباً من القائمة</p></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="statsContent-memorization" style="display:none">
+        <div class="card"><div class="card-header"><h3>📖 متصدرو تسميع النظم</h3></div>
+          <div class="table-wrapper"><table class="table" id="memoTable">
+            <thead><tr><th>المركز</th><th>الطالب</th><th>الرقم المسجل</th></tr></thead>
+            <tbody id="memoTbody"></tbody>
+          </table></div>
+          <div class="card-body" style="padding-top:0">
+            <div class="stats-share-wrap"><button class="stats-share-btn" id="memoShareBtn">📲 عرض الإحصائية</button></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="statsContent-points" style="display:none">
+        <div class="card"><div class="card-header"><h3>⭐ متصدرو النقاط</h3></div>
+          <div class="table-wrapper"><table class="table" id="pointsTable">
+            <thead><tr><th>المركز</th><th>الطالب</th><th>النقاط</th></tr></thead>
+            <tbody id="pointsTbody"></tbody>
+          </table></div>
+          <div class="card-body" style="padding-top:0">
+            <div class="stats-share-wrap"><button class="stats-share-btn" id="ptsShareBtn">📲 عرض الإحصائية</button></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="statsContent-groups" style="display:none">
+        <div class="card"><div class="card-header"><h3>🏆 المجموعات المتصدرة</h3></div>
+          <div class="table-wrapper"><table class="table" id="groupsTable">
+            <thead><tr><th>المركز</th><th>المجموعة</th><th>النقاط</th></tr></thead>
+            <tbody id="groupsTbody"></tbody>
+          </table></div>
+          <div class="card-body" style="padding-top:0">
+            <div class="stats-share-wrap"><button class="stats-share-btn" id="grpShareBtn">📲 عرض الإحصائية</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== HOMEWORK PAGE ===== -->
+    <div class="page-section" id="section-homework">
+      <div class="section-header">
+        <div class="section-title">📚 الواجبات</div>
+        <div class="flex gap-1" style="flex-wrap:wrap">
+          <button class="btn btn-primary btn-sm" onclick="navigate('add-homework')">➕ إضافة واجب جديد</button>
+          <button class="btn btn-gray btn-sm" onclick="confirmClearHomework()">🗑 حذف السجل</button>
+        </div>
+      </div>
+
+      <div class="tabs">
+        <div class="tab active" id="hwTabBtn-sent" onclick="switchHwTabSwipe('sent',0)">📤 الواجبات المرسلة</div>
+        <div class="tab" id="hwTabBtn-done" onclick="switchHwTabSwipe('done',1)">✅ الواجبات المنتهية</div>
+      </div>
+
+      <div id="sentHwList"><div class="no-data"><div class="no-data-icon">📤</div><p>لا توجد واجبات مرسلة</p></div></div>
+      <div id="doneHwList" style="display:none"><div class="no-data"><div class="no-data-icon">✅</div><p>لا توجد واجبات منتهية</p></div></div>
+    </div>
+
+    <!-- ===== ADD HOMEWORK PAGE ===== -->
+    <div class="page-section" id="section-add-homework">
+      <button class="back-btn-top" onclick="navigate('homework')">← رجوع</button>
+      <div class="section-title mb-2">➕ إضافة واجب جديد</div>
+
+      <div class="card">
+        <div class="card-body">
+          <div class="form-group">
+            <label class="form-label">📝 عنوان الواجب</label>
+            <input type="text" class="form-input" id="hwTitle" placeholder="أدخل عنوان الواجب" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" enterkeyhint="done">
+          </div>
+          <div class="form-group">
+            <label class="form-label">🔗 ربط بلقاء (اختياري)</label>
+            <select class="form-select" id="hwLinkMeeting">
+              <option value="">بدون ربط بلقاء</option>
+            </select>
+          </div>
+          <div class="separator"></div>
+          <div id="questionsContainer"></div>
+          <button class="btn btn-outline btn-sm mt-1" onclick="addQuestion()">➕ إضافة سؤال جديد</button>
+          <div class="separator"></div>
+          <div class="flex gap-2" style="flex-wrap:wrap;align-items:center">
+            <div>
+              <label class="form-label" style="margin-bottom:4px">📅 آخر موعد للتسليم</label>
+              <input type="datetime-local" class="form-input" id="hwDeadline" style="direction:ltr">
+            </div>
+            <div>
+              <label class="form-label" style="margin-bottom:4px">⏱ وقت الحل (دقائق)</label>
+              <input type="number" class="form-input" id="hwTimeLimit" placeholder="0 = غير محدد" min="0" style="direction:ltr;width:130px">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hide Grade Option -->
+      <div class="card mt-2">
+        <div class="card-body" style="padding:14px 16px">
+          <label style="display:flex;align-items:center;gap:12px;cursor:pointer;user-select:none">
+            <div style="position:relative;flex-shrink:0">
+              <input type="checkbox" id="hwHideGrade" style="opacity:0;position:absolute;width:0;height:0">
+              <div id="hwHideGradeTrack" onclick="toggleHideGrade()" style="width:46px;height:24px;background:var(--gray-mid);border-radius:12px;transition:0.3s;cursor:pointer">
+                <div id="hwHideGradeThumb" style="width:20px;height:20px;background:var(--white);border-radius:50%;position:absolute;top:2px;right:2px;transition:0.3s;box-shadow:0 1px 4px rgba(0,0,0,0.2)"></div>
+              </div>
+            </div>
+            <div>
+              <div style="font-weight:700;font-size:0.88rem;color:var(--navy)">🔒 إخفاء الدرجات والإجابات</div>
+              <div style="font-size:0.75rem;color:var(--gray);margin-top:2px">لن يرى الطلاب درجتهم أو الإجابات الصحيحة والخاطئة</div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div class="flex gap-2 mt-2" style="justify-content:flex-end">
+        <button class="btn btn-primary" onclick="submitHomework()">📤 إرسال الواجب</button>
+      </div>
+    </div>
+
+    <!-- ===== STUDENTS PAGE ===== -->
+    <div class="page-section" id="section-students">
+      <div class="section-header">
+        <div class="section-title">👥 الطلاب</div>
+        <div class="flex gap-1" style="flex-wrap:wrap">
+          <button class="btn btn-primary btn-sm" onclick="showAddStudent()">➕ إضافة طالب جديد</button>
+          <button class="btn btn-gray btn-sm" onclick="confirmClearStudents()">🗑 مسح الكل</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-body" id="studentsList">
+          <div class="no-data"><div class="no-data-icon">👥</div><p>لا يوجد طلاب مسجلون</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== MEETINGS PAGE ===== -->
+    <div class="page-section" id="section-meetings">
+      <div class="section-header">
+        <div class="section-title">📅 إعلان اللقاءات</div>
+        <div class="flex gap-1" style="flex-wrap:wrap">
+          <button class="btn btn-primary btn-sm" onclick="navigate('add-meeting')">➕ أضف لقاء جديد</button>
+          <button class="btn btn-gray btn-sm" onclick="confirmClearMeetings()">🗑 مسح الكل</button>
+        </div>
+      </div>
+      <div class="tabs">
+        <div class="tab active" id="meetTabBtn-upcoming" onclick="switchMeetingTabSwipe('upcoming',0)">📅 اللقاءات القادمة</div>
+        <div class="tab" id="meetTabBtn-past" onclick="switchMeetingTabSwipe('past',1)">📜 اللقاءات السابقة</div>
+      </div>
+      <div id="upcomingMeetings"><div class="no-data"><div class="no-data-icon">📅</div><p>لا توجد لقاءات قادمة</p></div></div>
+      <div id="pastMeetings" style="display:none"><div class="no-data"><div class="no-data-icon">📜</div><p>لا توجد لقاءات سابقة</p></div></div>
+    </div>
+
+    <!-- ===== ADD MEETING PAGE ===== -->
+    <div class="page-section" id="section-add-meeting">
+      <button class="back-btn-top" onclick="navigate('meetings')">← رجوع</button>
+      <div class="section-title mb-2">➕ إضافة لقاء جديد</div>
+      <div class="card">
+        <div class="card-body">
+          <div class="form-group">
+            <label class="form-label">📝 عنوان اللقاء (اختياري)</label>
+            <input type="text" class="form-input" id="meetingTitle" placeholder="أدخل عنوان اللقاء" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" enterkeyhint="done">
+          </div>
+          <div class="form-group">
+            <label class="form-label">📅 التاريخ والوقت</label>
+            <input type="datetime-local" class="form-input" id="meetingDateTime" style="direction:ltr">
+          </div>
+        </div>
+      </div>
+      <!-- مهام المجموعات -->
+      <div class="card mt-2" id="meetingGroupTasksContainer" style="display:none">
+        <div class="card-body"></div>
+      </div>
+      <div class="flex gap-2 mt-2" style="justify-content:flex-end">
+        <button class="btn btn-primary" onclick="saveMeeting()">💾 حفظ اللقاء</button>
+      </div>
+    </div>
+
+    <!-- ===== ATTENDANCE PAGE ===== -->
+    <div class="page-section" id="section-attendance">
+      <button class="back-btn-top" id="attendanceBackBtn" onclick="navigate('meetings')">← رجوع</button>
+      <div class="section-title mb-2" id="attendanceTitle">📋 تحضير الطلاب</div>
+      <div id="attendanceList"><div class="no-data"><div class="no-data-icon">👥</div><p>لا يوجد طلاب</p></div></div>
+      <div class="flex gap-2 mt-2" style="justify-content:flex-end">
+        <button class="btn btn-primary" onclick="saveAttendance()">💾 حفظ التحضير</button>
+      </div>
+    </div>
+
+    <!-- ===== POINTS PAGE ===== -->
+    <div class="page-section" id="section-points">
+      <div class="section-header">
+        <div class="section-title">⭐ النقاط</div>
+        <button class="btn btn-gray btn-sm" onclick="confirmClearPoints()">🗑 مسح النقاط</button>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <h3>⭐ تسجيل نقاط المبادرات</h3>
+          <select class="form-select" style="width:auto;padding:4px 8px;font-size:0.82rem" id="pointsMeetingSelect">
+            <option value="">بدون ربط بلقاء</option>
+          </select>
+        </div>
+        <div class="card-body" id="pointsList">
+          <div class="no-data"><div class="no-data-icon">⭐</div><p>لا يوجد طلاب</p></div>
+        </div>
+      </div>
+      <div class="flex mt-2" style="justify-content:flex-end">
+        <button class="btn btn-primary" onclick="savePoints()">💾 إضافة النقاط</button>
+      </div>
+    </div>
+
+    <!-- ===== MEMORIZATION PAGE ===== -->
+    <div class="page-section" id="section-memorization">
+      <div class="section-header">
+        <div class="section-title">📖 مقرر التسميع</div>
+        <button class="btn btn-gray btn-sm" onclick="confirmClearMemo()">🗑 مسح الأرقام</button>
+      </div>
+      <!-- Compact target display (shown after saving) -->
+      <div class="card mb-2" id="memoTargetCompact" style="display:none">
+        <div class="card-body" style="padding:12px 16px">
+          <div class="flex-between">
+            <div class="flex gap-2" style="align-items:center">
+              <span style="font-size:1rem">🎯</span>
+              <span style="font-weight:700;color:var(--navy)">الرقم المستهدف:</span>
+              <span id="memoTargetCompactNum" style="font-size:1.3rem;font-weight:900;color:var(--gold)">—</span>
+            </div>
+            <button class="btn btn-outline btn-sm" onclick="showMemoTargetEdit()">✏️ تعديل</button>
+          </div>
+        </div>
+      </div>
+      <!-- Edit target form (shown when editing) -->
+      <div class="card mb-2" id="memoTargetEditCard">
+        <div class="card-header">
+          <h3>🔢 الرقم المستهدف (الثابت)</h3>
+        </div>
+        <div class="card-body">
+          <div class="flex gap-2" style="align-items:center;flex-wrap:wrap">
+            <input type="number" class="form-input" id="memoTarget" placeholder="أدخل الرقم المستهدف" style="direction:ltr;max-width:150px" min="0">
+            <button class="btn btn-primary btn-sm" id="memoTargetBtn" onclick="saveMemoTarget()">💾 حفظ الرقم</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>📊 تقييم الطلاب</h3></div>
+        <div class="card-body" id="memoStudentList">
+          <div class="no-data"><div class="no-data-icon">📖</div><p>لا يوجد طلاب</p></div>
+        </div>
+      </div>
+      <div class="flex mt-2" style="justify-content:flex-end">
+        <button class="btn btn-primary" onclick="saveMemoScores()">💾 حفظ الأرقام</button>
+      </div>
+    </div>
+
+    <!-- ===== GROUPS PAGE ===== -->
+    <div class="page-section" id="section-groups">
+      <div class="section-header">
+        <div class="section-title">🏆 المجموعات</div>
+        <div class="flex gap-1">
+          <button class="btn btn-primary btn-sm" onclick="showAddGroup()">➕ إضافة مجموعة</button>
+          <button class="btn btn-gray btn-sm" onclick="confirmClearGroupPoints()">🗑 مسح النقاط</button>
+        </div>
+      </div>
+      <div id="groupsList">
+        <div class="no-data"><div class="no-data-icon">🏆</div><p>لا توجد مجموعات</p></div>
+      </div>
+    </div>
+
+    <!-- ===== SEERAH PAGE ===== -->
+    <div class="page-section" id="section-seerah">
+      <div class="section-header">
+        <div class="section-title">🕌 درس السيرة</div>
+        <div class="flex gap-1" style="flex-wrap:wrap">
+          <button class="btn btn-sm" style="background:linear-gradient(135deg,#0a1628,#1a3a6b);color:#c9a227;border:1.5px solid rgba(201,162,39,0.5)" onclick="openTeacherShareBox()">📬 صندوق المشاركات</button>
+          <button class="btn btn-primary btn-sm" onclick="navigate('add-lesson')">➕ إضافة درس جديد</button>
+          <button class="btn btn-gray btn-sm" onclick="confirmClearLessons()">🗑 مسح السجل</button>
+        </div>
+      </div>
+      <!-- تبويبات الدروس — تظهر الدروس المخفية فقط إذا وجد درس مخفي واحد على الأقل -->
+      <div class="tabs" id="lessonTabsRow">
+        <div class="tab active" id="lessonTabBtn-sent" onclick="switchLessonTab('sent')">📤 الدروس المرسلة</div>
+        <div class="tab" id="lessonTabBtn-hidden" onclick="switchLessonTab('hidden')" style="display:none">🙈 الدروس المخفية</div>
+      </div>
+      <div id="lessonsSentList">
+        <div class="no-data"><div class="no-data-icon">🕌</div><p>لا توجد دروس مسجلة</p></div>
+      </div>
+      <div id="lessonsHiddenList" style="display:none">
+        <div class="no-data"><div class="no-data-icon">🙈</div><p>لا توجد دروس مخفية</p></div>
+      </div>
+    </div>
+
+    <!-- ===== ADD LESSON PAGE ===== -->
+    <div class="page-section" id="section-add-lesson">
+      <button class="back-btn-top" id="lessonBackBtn" onclick="navigate('seerah')">← رجوع</button>
+      <div class="section-title mb-2" id="lessonFormTitle">➕ إضافة درس جديد</div>
+      <input type="hidden" id="editLessonId">
+      <div class="card">
+        <div class="card-body">
+          <div class="form-group">
+            <label class="form-label">📝 عنوان الدرس</label>
+            <input type="text" class="form-input" id="lessonTitle" placeholder="أدخل عنوان الدرس" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" enterkeyhint="done">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">🎬 مصادر الدرس (يمكن اختيار أكثر من مصدر)</label>
+            <div class="flex gap-2" style="margin-bottom:8px;flex-wrap:wrap">
+              <button type="button" class="source-toggle-btn" id="ytSourceBtn" onclick="toggleLessonSource('youtube')">▶️ رابط يوتيوب</button>
+              <button type="button" class="source-toggle-btn" id="uploadSourceBtn" onclick="toggleLessonSource('upload')">📁 رفع فيديو</button>
+              <button type="button" class="source-toggle-btn" id="pdfSourceBtn" onclick="toggleLessonSource('pdf')">📄 ملف PDF</button>
+            </div>
+            <div id="ytUrlSection" style="display:none" class="source-section">
+              <label style="font-size:0.8rem;color:var(--gray);margin-bottom:4px;display:block">رابط يوتيوب</label>
+              <input type="url" class="form-input" id="lessonYtUrl" placeholder="https://youtube.com/watch?v=...">
+            </div>
+            <div id="uploadVideoSection" style="display:none" class="source-section">
+              <label class="file-picker-area" id="videoPickerArea"
+                onclick="document.getElementById('lessonVideoFile').click()"
+                ondragover="event.preventDefault();this.style.borderColor='var(--gold)';this.style.background='rgba(201,162,39,0.12)'"
+                ondragleave="this.style.borderColor='';this.style.background=''"
+                ondrop="event.preventDefault();this.style.borderColor='';this.style.background='';onVideoFileDrop(event)">
+                <div class="file-picker-icon">🎥</div>
+                <div class="file-picker-title">اضغط أو اسحب ملف الفيديو هنا</div>
+                <div class="file-picker-sub">MP4 · MKV · MOV · AVI · 3GP</div>
+                <div id="videoPickerName" class="file-picker-chosen" style="display:none"></div>
+              </label>
+              <input type="file" id="lessonVideoFile" accept="video/mp4,video/mkv,video/mov,video/avi,video/3gp,.mkv,.mp4,.mov,.avi,.3gp" style="display:none" onchange="onVideoFileChange(this)">
+              <div id="uploadProgress" style="margin-top:8px;display:none">
+                <div style="height:8px;background:var(--gray-mid);border-radius:4px;overflow:hidden">
+                  <div id="uploadProgressBar" style="height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-dark));width:0%;transition:width 0.3s ease;border-radius:4px"></div>
+                </div>
+                <div id="uploadProgressText" style="font-size:0.78rem;color:var(--gray);margin-top:4px;text-align:center">جاري الرفع...</div>
+              </div>
+            </div>
+            <div id="pdfSourceSection" style="display:none" class="source-section">
+              <label class="file-picker-area file-picker-sm" id="pdfPickerArea"
+                onclick="document.getElementById('lessonPdfFile').click()"
+                ondragover="event.preventDefault();this.style.borderColor='var(--gold)';this.style.background='rgba(201,162,39,0.12)'"
+                ondragleave="this.style.borderColor='';this.style.background=''"
+                ondrop="event.preventDefault();this.style.borderColor='';this.style.background='';onPdfFileDrop(event)">
+                <div class="file-picker-icon">📄</div>
+                <div class="file-picker-title">اضغط أو اسحب ملف PDF هنا</div>
+                <div id="pdfPickerName" class="file-picker-chosen" style="display:none"></div>
+              </label>
+              <input type="file" id="lessonPdfFile" accept=".pdf" style="display:none" onchange="onPdfFileChange(this)">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">📝 موضوع الدرس</label>
+            <!-- شريط التنسيق -->
+            <div id="topicToolbar" style="display:flex;flex-wrap:wrap;gap:4px;padding:8px 10px;background:#f8fafc;border:1.5px solid var(--gray-mid);border-bottom:none;border-radius:var(--radius-sm) var(--radius-sm) 0 0;align-items:center;">
+              <!-- تغميق -->
+              <button type="button" id="fmtBold" onclick="_topicFmt('bold')" title="تغميق"
+                style="min-width:34px;height:34px;border-radius:7px;border:1.5px solid #dde3ec;background:#fff;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center;padding:0 8px;"
+                onmouseover="this.style.borderColor='var(--gold)';this.style.background='rgba(201,162,39,0.1)'"
+                onmouseout="if(!this.classList.contains('fmt-active')){this.style.borderColor='#dde3ec';this.style.background='#fff'}">
+                <b style="font-size:1rem;font-family:Georgia,serif;color:#0a1628;">B</b>
+              </button>
+              <!-- مائل -->
+              <button type="button" id="fmtItalic" onclick="_topicFmt('italic')" title="مائل"
+                style="min-width:34px;height:34px;border-radius:7px;border:1.5px solid #dde3ec;background:#fff;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center;padding:0 8px;"
+                onmouseover="this.style.borderColor='var(--gold)';this.style.background='rgba(201,162,39,0.1)'"
+                onmouseout="if(!this.classList.contains('fmt-active')){this.style.borderColor='#dde3ec';this.style.background='#fff'}">
+                <i style="font-size:1rem;font-family:Georgia,serif;color:#0a1628;">I</i>
+              </button>
+              <!-- خط تحت النص -->
+              <button type="button" id="fmtUnderline" onclick="_topicFmt('underline')" title="خط تحت النص"
+                style="min-width:34px;height:34px;border-radius:7px;border:1.5px solid #dde3ec;background:#fff;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center;padding:0 8px;"
+                onmouseover="this.style.borderColor='var(--gold)';this.style.background='rgba(201,162,39,0.1)'"
+                onmouseout="if(!this.classList.contains('fmt-active')){this.style.borderColor='#dde3ec';this.style.background='#fff'}">
+                <u style="font-size:0.95rem;font-family:Georgia,serif;color:#0a1628;font-weight:700;">U</u>
+              </button>
+              <div style="width:1px;background:#dde3ec;margin:0 2px;height:22px;"></div>
+              <!-- تكبير الخط -->
+              <button type="button" onclick="_topicFmt('bigger')" title="تكبير الخط"
+                style="min-width:38px;height:34px;border-radius:7px;border:1.5px solid #dde3ec;background:#fff;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:800;color:#0a1628;padding:0 6px;gap:1px;"
+                onmouseover="this.style.borderColor='var(--gold)';this.style.background='rgba(201,162,39,0.1)'"
+                onmouseout="this.style.borderColor='#dde3ec';this.style.background='#fff'">
+                <span style="font-size:1rem;font-weight:900">A</span><span style="font-size:0.65rem;color:var(--gold);font-weight:900">+</span>
+              </button>
+              <!-- تصغير الخط -->
+              <button type="button" onclick="_topicFmt('smaller')" title="تصغير الخط"
+                style="min-width:38px;height:34px;border-radius:7px;border:1.5px solid #dde3ec;background:#fff;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:800;color:#0a1628;padding:0 6px;gap:1px;"
+                onmouseover="this.style.borderColor='var(--gold)';this.style.background='rgba(201,162,39,0.1)'"
+                onmouseout="this.style.borderColor='#dde3ec';this.style.background='#fff'">
+                <span style="font-size:0.75rem;font-weight:900">A</span><span style="font-size:0.65rem;color:#e53e3e;font-weight:900">&#8722;</span>
+              </button>
+              <div style="width:1px;background:#dde3ec;margin:0 2px;height:22px;"></div>
+              <!-- محاذاة يمين -->
+              <button type="button" id="fmtRight" onclick="_topicFmt('right')" title="محاذاة يمين"
+                style="min-width:34px;height:34px;border-radius:7px;border:1.5px solid #dde3ec;background:#fff;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center;padding:0 6px;"
+                onmouseover="this.style.borderColor='var(--gold)';this.style.background='rgba(201,162,39,0.1)'"
+                onmouseout="if(!this.classList.contains('fmt-active')){this.style.borderColor='#dde3ec';this.style.background='#fff'}">
+                <svg width="16" height="14" viewBox="0 0 16 14" fill="none"><rect x="2" y="0" width="14" height="2" rx="1" fill="#0a1628"/><rect x="4" y="4" width="12" height="2" rx="1" fill="#0a1628"/><rect x="2" y="8" width="14" height="2" rx="1" fill="#0a1628"/><rect x="4" y="12" width="12" height="2" rx="1" fill="#0a1628"/></svg>
+              </button>
+              <!-- توسيط -->
+              <button type="button" id="fmtCenter" onclick="_topicFmt('center')" title="توسيط"
+                style="min-width:34px;height:34px;border-radius:7px;border:1.5px solid #dde3ec;background:#fff;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center;padding:0 6px;"
+                onmouseover="this.style.borderColor='var(--gold)';this.style.background='rgba(201,162,39,0.1)'"
+                onmouseout="if(!this.classList.contains('fmt-active')){this.style.borderColor='#dde3ec';this.style.background='#fff'}">
+                <svg width="16" height="14" viewBox="0 0 16 14" fill="none"><rect x="1" y="0" width="14" height="2" rx="1" fill="#0a1628"/><rect x="3" y="4" width="10" height="2" rx="1" fill="#0a1628"/><rect x="1" y="8" width="14" height="2" rx="1" fill="#0a1628"/><rect x="3" y="12" width="10" height="2" rx="1" fill="#0a1628"/></svg>
+              </button>
+              <div style="width:1px;background:#dde3ec;margin:0 2px;height:22px;"></div>
+              <!-- لون النص -->
+              <div style="position:relative;display:flex;align-items:center;">
+                <button type="button" id="fmtColorBtn" onclick="document.getElementById('topicColorInput').click()" title="لون النص"
+                  style="min-width:34px;height:34px;border-radius:7px;border:1.5px solid #dde3ec;background:#fff;cursor:pointer;transition:all 0.15s;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 6px;gap:2px;"
+                  onmouseover="this.style.borderColor='var(--gold)';this.style.background='rgba(201,162,39,0.1)'"
+                  onmouseout="this.style.borderColor='#dde3ec';this.style.background='#fff'">
+                  <span style="font-size:0.9rem;font-weight:900;color:#0a1628;line-height:1">A</span>
+                  <div id="fmtColorBar" style="width:18px;height:3px;background:#e53e3e;border-radius:2px;"></div>
+                </button>
+                <input type="color" id="topicColorInput" value="#e53e3e"
+                  style="position:absolute;opacity:0;width:0;height:0;pointer-events:none;"
+                  oninput="_topicFmt('color', this.value)"
+                  onchange="_topicFmt('color', this.value)">
+              </div>
+            </div>
+            <div id="lessonTopicEditor"
+              contenteditable="true"
+              dir="rtl"
+              data-placeholder="اكتب موضوع الدرس..."
+              style="min-height:120px;padding:12px 14px;border:1.5px solid var(--gray-mid);border-radius:0 0 var(--radius-sm) var(--radius-sm);font-family:Tajawal,sans-serif;font-size:0.92rem;line-height:1.85;direction:rtl;text-align:right;outline:none;background:#fff;transition:border-color 0.2s,box-shadow 0.2s;"
+              onfocus="this.style.borderColor='var(--gold)';this.style.boxShadow='0 0 0 2px rgba(201,162,39,0.15)'"
+              onfocusout="this.style.borderColor='var(--gray-mid)';this.style.boxShadow='none'"
+            ></div>
+            <!-- حقل مخفي للقيمة الفعلية -->
+            <textarea id="lessonTopic" style="display:none"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">📚 ربط بواجب (اختياري)</label>
+            <select class="form-select" id="lessonLinkHw">
+              <option value="">بدون واجب مرتبط</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">📅 ربط بلقاء (اختياري)</label>
+            <select class="form-select" id="lessonLinkMeeting">
+              <option value="">بدون لقاء مرتبط</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <!-- زر إخفاء الدرس — يظهر فقط عند تعديل درس موجود -->
+      <div id="lessonHideToggleWrap" style="display:none" class="card mt-2">
+        <div class="card-body" style="padding:14px 16px">
+          <div class="flex-between">
+            <div>
+              <div style="font-weight:700;font-size:0.88rem;color:var(--navy)">🙈 إخفاء الدرس</div>
+              <div style="font-size:0.75rem;color:var(--gray);margin-top:2px">إذا أُخفي الدرس لن يظهر للطلاب</div>
+            </div>
+            <button id="lessonHideBtn" class="lesson-hide-btn" onclick="toggleLessonHide()">🙈 إخفاء الدرس</button>
+          </div>
+        </div>
+      </div>
+      <div class="flex gap-2 mt-2" style="justify-content:flex-end">
+        <button class="btn btn-primary" id="lessonSaveBtn" onclick="saveLesson()">📤 إرسال الدرس</button>
+      </div>
+    </div>
+
+
+    <!-- ===== TEACHERS PAGE ===== -->
+    <div class="page-section" id="section-teachers">
+      <div class="section-header">
+        <div class="section-title">👨‍🏫 المعلمون المسجلون</div>
+        <button class="btn btn-primary btn-sm" onclick="showAddTeacherModal()">➕ إضافة معلم جديد</button>
+      </div>
+      <div class="card">
+        <div class="card-body" id="teachersList">
+          <div class="no-data"><div class="no-data-icon">👨‍🏫</div><p>لا يوجد معلمون</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== REPORT CREATE PAGE ===== -->
+    <div class="page-section" id="section-create-report">
+      <button class="back-btn-top" onclick="navigate('home')">← رجوع</button>
+      <div class="section-title mb-2">📋 إنشاء تقرير جديد</div>
+      <div class="card">
+        <div class="card-body">
+          <div class="form-group">
+            <label class="form-label">📝 اسم التقرير (اختياري)</label>
+            <input type="text" class="form-input" id="reportTitle" placeholder="اتركه فارغاً للتسمية التلقائية" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" enterkeyhint="done">
+          </div>
+          <div class="form-group">
+            <label class="form-label">📅 من تاريخ</label>
+            <input type="date" class="form-input" id="reportFrom" style="direction:ltr">
+          </div>
+          <div class="form-group">
+            <label class="form-label">📅 إلى تاريخ</label>
+            <input type="date" class="form-input" id="reportTo" style="direction:ltr">
+          </div>
+        </div>
+      </div>
+      <div class="flex mt-2" style="justify-content:flex-end">
+        <button class="btn btn-primary" onclick="generateReport()">📊 إنشاء التقرير</button>
+      </div>
+    </div>
+
+    <!-- ===== REPORT VIEW PAGE ===== -->
+    <div class="page-section" id="section-view-report">
+  <button class="back-btn-top" onclick="navigate('home')">← رجوع</button>
+  <div id="reportContent"></div>
+</div>
+
+    <!-- ===== SURVEY SUBMISSIONS PAGE (Teacher) ===== -->
+    <div class="page-section" id="section-survey-submissions">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <button class="back-btn-top" onclick="navigate('meetings')" style="margin-bottom:0;position:static;background:rgba(201,162,39,0.1);color:var(--navy);border:1.5px solid rgba(201,162,39,0.25);border-radius:10px;padding:7px 13px;font-family:Tajawal,sans-serif;font-size:0.82rem;font-weight:700;cursor:pointer;transition:all 0.2s" onmouseover="this.style.background='rgba(201,162,39,0.2)'" onmouseout="this.style.background='rgba(201,162,39,0.1)'">← رجوع</button>
+          <div class="section-title" id="surveySubmissionsTitle" style="margin-bottom:0">📋 استبيانات الدرس</div>
+        </div>
+        <div id="surveySubmissionsHeaderActions"></div>
+      </div>
+      <div id="surveySubmissionsList"></div>
+    </div>
+
+    <!-- ===== SURVEY SUBMISSION DETAIL PAGE (Teacher) ===== -->
+    <div class="page-section" id="section-survey-detail">
+      <button class="back-btn-top" onclick="navigate('survey-submissions')">← رجوع</button>
+      <div class="section-title mb-2" id="surveyDetailTitle">📊 تفاصيل الاستبيان</div>
+      <div id="surveyDetailContent"></div>
+    </div>
+
+    <!-- ===== LESSON COMMENTS PAGE ===== -->
+    <div class="page-section" id="section-lesson-comments">
+      <button class="back-btn-top" id="commentsBackBtn" onclick="navigate('seerah')">← رجوع</button>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+        <div class="section-title" id="commentsPageTitle" style="margin-bottom:0">💬 التعليقات</div>
+        <button id="commentsToggleBtn" onclick="toggleCurrentLessonComments()"
+          style="border-radius:12px;padding:8px 16px;font-family:Tajawal,sans-serif;font-size:0.82rem;font-weight:800;cursor:pointer;border:none;display:flex;align-items:center;gap:7px;transition:all 0.2s">
+        </button>
+      </div>
+      <div id="commentsPageContent" style="margin-bottom:14px"></div>
+      <!-- Teacher Reply Card -->
+      <div class="card mt-2" id="teacherReplyCard" style="background:linear-gradient(145deg,#0e1b30,#0a1425);border:1.5px solid rgba(201,162,39,0.3);border-radius:18px">
+        <div class="card-body" style="padding:16px">
+          <div style="font-weight:800;font-size:0.9rem;color:#e8c84a;margin-bottom:12px;display:flex;align-items:center;gap:7px">
+            <span style="font-size:1.1rem">✍️</span> ردّ المعلم على التعليقات
+            <span style="font-size:0.68rem;color:rgba(201,162,39,0.6);font-weight:600;margin-right:auto">اضغط اسم الطالب للرد عليه</span>
+          </div>
+          <div style="position:relative;border-radius:14px;overflow:hidden;border:2px solid rgba(201,162,39,0.4);background:rgba(201,162,39,0.04);transition:border-color 0.3s,box-shadow 0.3s"
+            onfocusin="this.style.borderColor='rgba(201,162,39,0.8)';this.style.boxShadow='0 0 0 3px rgba(201,162,39,0.15)'"
+            onfocusout="this.style.borderColor='rgba(201,162,39,0.4)';this.style.boxShadow='none'">
+            <div style="padding:4px 14px 0;font-size:0.7rem;color:rgba(201,162,39,0.6);font-weight:700;margin-top:8px">✍️ اكتب ردك</div>
+            <textarea id="teacherReplyBox" placeholder="اكتب ردك هنا... أو اضغط على اسم الطالب للرد المباشر" rows="3"
+              style="width:100%;background:transparent;border:none;outline:none;padding:6px 14px 10px;font-family:Tajawal,sans-serif;font-size:0.88rem;color:#e8dfc8;resize:none;direction:rtl;line-height:1.7;caret-color:#c9a227"></textarea>
+            <div style="padding:0 12px 10px;display:flex;justify-content:flex-end">
+              <button onclick="sendTeacherReply()" style="background:linear-gradient(135deg,#c9a227,#a07d10);color:#0a1628;border:none;border-radius:10px;padding:9px 22px;font-family:Tajawal,sans-serif;font-size:0.84rem;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:6px;box-shadow:0 4px 14px rgba(201,162,39,0.35)">
+                <span>📤</span><span>إرسال الرد</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TEACHER ALL POSTS PAGE -->
+    <div class="page-section" id="section-teacher-all-posts" style="min-height:calc(100vh - 120px);display:flex;flex-direction:column">
+      <button class="back-btn-top" onclick="navigate('teacher-sharebox')" style="align-self:flex-start">← رجوع</button>
+      <div class="section-title mb-2">📬 جميع المشاركات</div>
+      <div id="allPostsContent" style="flex:1;display:flex;flex-direction:column"></div>
+    </div>
+
+    <!-- TEACHER SHARE BOX — شاشة كاملة -->
+    <div class="page-section" id="section-teacher-sharebox"
+      style="display:none;flex-direction:column;position:fixed;inset:0;z-index:100;background:#f0f4f8">
+      <!-- رأس الصفحة -->
+      <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:linear-gradient(135deg,#0a1628,#1a3a6b);flex-shrink:0;box-shadow:0 2px 10px rgba(0,0,0,0.2)">
+        <button onclick="navigate('seerah')"
+          style="background:rgba(255,255,255,0.15);color:#fff;border:none;border-radius:50%;width:38px;height:38px;font-size:1.1rem;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:background 0.2s"
+          onmouseover="this.style.background='rgba(255,255,255,0.25)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">→</button>
+        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#c9a227,#a07d10);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0">📬</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:800;font-size:0.95rem;color:#fff">صندوق المشاركات</div>
+          <div style="font-size:0.68rem;color:rgba(201,162,39,0.7);margin-top:1px">محادثات الطلاب</div>
+        </div>
+      </div>
+      <!-- المحتوى -->
+      <div style="flex:1;overflow-y:auto;padding:14px 12px;" id="teacherShareBoxContent"></div>
+    </div>
+
+    <!-- TEACHER SHARE CHAT — شاشة كاملة -->
+    <div class="page-section" id="section-teacher-sharechat"
+      style="display:none;flex-direction:column;position:fixed;inset:0;z-index:100;background:#f0f4f8">
+      <!-- رأس المحادثة -->
+      <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:linear-gradient(135deg,#0a1628,#1a3a6b);flex-shrink:0;box-shadow:0 2px 10px rgba(0,0,0,0.2)">
+        <button onclick="navigate('teacher-sharebox')"
+          style="background:rgba(255,255,255,0.15);color:#fff;border:none;border-radius:50%;width:38px;height:38px;font-size:1.1rem;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:background 0.2s"
+          onmouseover="this.style.background='rgba(255,255,255,0.25)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">→</button>
+        <div id="sharechatStudentAvatar"
+          style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#c9a227,#a07d10);display:flex;align-items:center;justify-content:center;font-weight:800;color:#0a1628;font-size:1rem;flex-shrink:0;border:3px solid #1a1a1a;box-shadow:0 0 0 1px rgba(0,0,0,0.15),0 2px 8px rgba(0,0,0,0.2);overflow:hidden;background-size:cover;background-position:center">ط</div>
+        <div style="flex:1;min-width:0">
+          <div id="sharechatStudentName" style="font-weight:800;font-size:0.95rem;color:#fff">اسم الطالب</div>
+        </div>
+        <button onclick="showShareChatOptions()"
+          style="background:rgba(255,255,255,0.1);border:none;color:rgba(255,255,255,0.8);font-size:1.3rem;cursor:pointer;padding:6px 10px;border-radius:8px">⋮</button>
+      </div>
+      <!-- منطقة الرسائل -->
+      <div id="sharechatMessages"
+        style="flex:1;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;background:#f0f4f8;min-height:0">
+      </div>
+      <!-- شريط الكتابة يُضاف من JS -->
+    </div>
+
+  </div><!-- end page-content -->
+
+</div><!-- end main-content -->
+  <footer class="footer">
+    جميع الحقوق محفوظة لـ <span class="footer-brand">نادي غرس</span> © 2026
+  </footer>
+</div><!-- end layout-wrapper -->
+
+<!-- Toast container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<style>
+/* محرر موضوع الدرس — placeholder */
+#lessonTopicEditor:empty:before {
+  content: attr(data-placeholder);
+  color: #a0aec0;
+  pointer-events: none;
+}
+/* أزرار التنسيق */
+#topicToolbar button.fmt-active {
+  background: rgba(201,162,39,0.18) !important;
+  border-color: var(--gold) !important;
+  color: var(--gold) !important;
+}
+</style>
+<script>
+// =============================================
+// محرر موضوع الدرس — شريط التنسيق
+// =============================================
+var _urlConvertTimer = null; // مؤقت 4 ثواني لتحويل الروابط
+
+function _topicFmt(cmd, val) {
+  const ed = document.getElementById('lessonTopicEditor');
+  if (!ed) return;
+  ed.focus();
+
+  if (cmd === 'bold') {
+    document.execCommand('bold', false, null);
+    _updateFmtBtnState('fmtBold', document.queryCommandState('bold'));
+  } else if (cmd === 'italic') {
+    document.execCommand('italic', false, null);
+    _updateFmtBtnState('fmtItalic', document.queryCommandState('italic'));
+  } else if (cmd === 'underline') {
+    document.execCommand('underline', false, null);
+    _updateFmtBtnState('fmtUnderline', document.queryCommandState('underline'));
+  } else if (cmd === 'color') {
+    document.execCommand('foreColor', false, val || '#e53e3e');
+    // تحديث شريط اللون في الزر
+    const bar = document.getElementById('fmtColorBar');
+    if (bar) bar.style.background = val || '#e53e3e';
+    const inp = document.getElementById('topicColorInput');
+    if (inp) inp.value = val || '#e53e3e';
+  } else if (cmd === 'bigger') {
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0 && !sel.isCollapsed) {
+      try {
+        const range = sel.getRangeAt(0);
+        const span = document.createElement('span');
+        span.style.fontSize = '1.25em';
+        range.surroundContents(span);
+      } catch(e) { document.execCommand('fontSize', false, '5'); }
+    } else {
+      document.execCommand('fontSize', false, '5');
+    }
+  } else if (cmd === 'smaller') {
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0 && !sel.isCollapsed) {
+      try {
+        const range = sel.getRangeAt(0);
+        const span = document.createElement('span');
+        span.style.fontSize = '0.8em';
+        range.surroundContents(span);
+      } catch(e) { document.execCommand('fontSize', false, '2'); }
+    } else {
+      document.execCommand('fontSize', false, '2');
+    }
+  } else if (cmd === 'right') {
+    document.execCommand('justifyRight', false, null);
+    _updateFmtBtnState('fmtRight', true);
+    _updateFmtBtnState('fmtCenter', false);
+  } else if (cmd === 'center') {
+    document.execCommand('justifyCenter', false, null);
+    _updateFmtBtnState('fmtCenter', true);
+    _updateFmtBtnState('fmtRight', false);
+  }
+  _syncTopicToHidden();
+}
+
+function _updateFmtBtnState(btnId, active) {
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+  if (active) {
+    btn.classList.add('fmt-active');
+    btn.style.borderColor = 'var(--gold)';
+    btn.style.background = 'rgba(201,162,39,0.15)';
+  } else {
+    btn.classList.remove('fmt-active');
+    btn.style.borderColor = '#dde3ec';
+    btn.style.background = '#fff';
+  }
+}
+
+function _updateTopicFmtStates() {
+  _updateFmtBtnState('fmtBold',      document.queryCommandState('bold'));
+  _updateFmtBtnState('fmtItalic',    document.queryCommandState('italic'));
+  _updateFmtBtnState('fmtUnderline', document.queryCommandState('underline'));
+  _updateFmtBtnState('fmtRight',     document.queryCommandState('justifyRight'));
+  _updateFmtBtnState('fmtCenter',    document.queryCommandState('justifyCenter'));
+}
+
+// ═══ تحويل الروابط لأزرار "اضغط هنا" بعد 4 ثوانٍ من التوقف عن الكتابة ═══
+function _scheduleUrlConvert() {
+  clearTimeout(_urlConvertTimer);
+  _urlConvertTimer = setTimeout(function() {
+    _convertRawUrlsInEditor();
+  }, 4000);
+}
+
+function _convertRawUrlsInEditor() {
+  const ed = document.getElementById('lessonTopicEditor');
+  if (!ed) return;
+  const walker = document.createTreeWalker(ed, NodeFilter.SHOW_TEXT, null, false);
+  const urlRegex = /(https?:\/\/[^\s<>"']+)/g;
+  const nodesToProcess = [];
+  let node;
+  while ((node = walker.nextNode())) {
+    if (urlRegex.test(node.nodeValue)) {
+      nodesToProcess.push(node);
+    }
+  }
+  nodesToProcess.forEach(function(textNode) {
+    const parent = textNode.parentNode;
+    if (parent && parent.tagName === 'A') return;
+    const text = textNode.nodeValue;
+    const parts = text.split(/(https?:\/\/[^\s<>"']+)/g);
+    if (parts.length <= 1) return;
+    const frag = document.createDocumentFragment();
+    parts.forEach(function(part) {
+      if (/^https?:\/\//.test(part)) {
+        const a = document.createElement('a');
+        a.href = part;
+        a.target = '_blank';
+        a.rel = 'noopener';
+
+        let appName = 'اضغط هنا';
+        let cls = 'ghars-link-generic';
+        let svgIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>`;
+
+        if (part.match(/(youtube\.com|youtu\.?be)/i)) {
+          appName = 'يوتيوب'; cls = 'ghars-link-youtube';
+          svgIcon = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.582 6.186a2.68 2.68 0 0 0-1.884-1.884C18.04 3.84 12 3.84 12 3.84s-6.04 0-7.698.462a2.68 2.68 0 0 0-1.884 1.884C1.956 7.844 1.956 12 1.956 12s0 4.156.462 5.814a2.68 2.68 0 0 0 1.884 1.884C6.04 20.16 12 20.16 12 20.16s6.04 0 7.698-.462a2.68 2.68 0 0 0 1.884-1.884c.462-1.658.462-5.814.462-5.814s0-4.156-.462-5.814zM9.956 15.36V8.64L15.688 12l-5.732 3.36z"/></svg>`;
+        } else if (part.match(/instagram\.com/i)) {
+          appName = 'إنستقرام'; cls = 'ghars-link-instagram';
+          svgIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>`;
+        } else if (part.match(/(tiktok\.com|vm\.tiktok\.com)/i)) {
+          appName = 'تيك توك'; cls = 'ghars-link-tiktok';
+          svgIcon = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.18-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.12-3.44-3.17-3.61-5.48-.12-1.7.35-3.41 1.25-4.8 1.27-1.84 3.37-3.07 5.6-3.23.01 1.34-.02 2.68.02 4.02-1.28.1-2.45.85-3.08 1.97-.59 1.1-.56 2.45.1 3.51.68 1.05 1.91 1.71 3.16 1.63 1.19-.07 2.29-.75 2.82-1.81.33-.67.48-1.42.46-2.18-.04-6.3-.01-12.61-.02-18.91l.03-.01z"/></svg>`;
+        }
+
+        a.innerHTML = `${svgIcon} <span>${appName}</span>`;
+        a.className = `ghars-rich-link ${cls}`;
+        a.contentEditable = "false";
+        frag.appendChild(a);
+      } else if (part) {
+        frag.appendChild(document.createTextNode(part));
+      }
+    });
+    parent.replaceChild(frag, textNode);
+  });
+  _syncTopicToHidden();
+}
+
+// ═══ حذف الرابط بالضغط المطول للمعلم ═══
+let _linkLpTimer = null;
+document.addEventListener('DOMContentLoaded', function() {
+  const ed = document.getElementById('lessonTopicEditor');
+  if (ed) {
+    const _startLinkLp = (e) => {
+      const target = e.target.closest('a.ghars-rich-link');
+      if (!target) return;
+      _linkLpTimer = setTimeout(() => {
+        _linkLpTimer = null;
+        if (confirm('هل تريد حذف هذا الرابط؟')) {
+          target.remove();
+          _syncTopicToHidden();
+        }
+      }, 700);
+    };
+    const _cancelLinkLp = () => { if (_linkLpTimer) { clearTimeout(_linkLpTimer); _linkLpTimer = null; } };
+
+    ed.addEventListener('touchstart', _startLinkLp, {passive: true});
+    ed.addEventListener('touchend', _cancelLinkLp);
+    ed.addEventListener('touchcancel', _cancelLinkLp);
+    ed.addEventListener('mousedown', _startLinkLp);
+    ed.addEventListener('mouseup', _cancelLinkLp);
+    ed.addEventListener('mouseleave', _cancelLinkLp);
+  }
+});
+// مزامنة المحرر المرئي مع حقل lessonTopic المخفي
+function _syncTopicToHidden() {
+  const ed = document.getElementById('lessonTopicEditor');
+  const hidden = document.getElementById('lessonTopic');
+  if (ed && hidden) hidden.value = ed.innerHTML;
+}
+
+// عند تحميل الصفحة — ربط الأحداث
+document.addEventListener('DOMContentLoaded', function() {
+  const ed = document.getElementById('lessonTopicEditor');
+  if (ed) {
+    ed.addEventListener('input', function() {
+      _syncTopicToHidden();
+      _scheduleUrlConvert(); // بدء العدّ التنازلي لتحويل الروابط
+    });
+    ed.addEventListener('blur', _syncTopicToHidden);
+    ed.addEventListener('keyup', _updateTopicFmtStates);
+    ed.addEventListener('mouseup', _updateTopicFmtStates);
+  }
+});
+
+// تُستدعى من teacher.js عند resetLessonForm أو editLesson لتحديث المحرر
+function _setTopicEditorValue(html) {
+  const ed = document.getElementById('lessonTopicEditor');
+  if (!ed) return;
+  ed.innerHTML = html || '';
+  _syncTopicToHidden();
+  clearTimeout(_urlConvertTimer);
+}
+
+function _getTopicEditorValue() {
+  _syncTopicToHidden();
+  const h = document.getElementById('lessonTopic');
+  return h ? h.value : '';
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/teacher.js"></script>
+<script>
+// ── السماح للمعلم بتحديد ونسخ النصوص مع منع القوائم المزعجة للصور والروابط فقط ──
+(function() {
+  document.addEventListener('contextmenu', function(e) {
+    const tag = e.target.tagName;
+    // منع القائمة الجانبية فقط عند الضغط مطولاً على صورة أو رابط (لمنع فتح المتصفح الخارجي)
+    if (tag === 'IMG' || tag === 'A') {
+      e.preventDefault();
+    }
+  }, false);
+
+  // تم إزالة قيود selectstart و touchstart بالكامل 
+  // ليتمكن المعلم من التحديد على أسماء الطلاب والنصوص ونسخها بكل سهولة.
+})();
+</script>
+<script>
+(function() {
+  // مراقبة إزالة class="app-loading" لإخفاء شاشة التحميل
+  const observer = new MutationObserver(function() {
+    if (!document.body.classList.contains('app-loading')) {
+      const loader = document.getElementById('ghars-loader');
+      if (loader) {
+        loader.classList.add('hide');
+        setTimeout(function() { loader.remove(); }, 520);
+      }
+      observer.disconnect();
+    }
+  });
+  observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+})();
+</script>
+</body>
+</html>

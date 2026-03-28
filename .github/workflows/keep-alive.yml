@@ -1,0 +1,17 @@
+name: Supabase Keep Alive
+
+on:
+  schedule:
+    # سيتم تشغيل هذا الكود تلقائياً كل 3 أيام عند منتصف الليل
+    - cron: '0 0 */3 * *'
+  workflow_dispatch: # يسمح لك بتشغيله يدوياً من لوحة تحكم GitHub متى أردت
+
+jobs:
+  ping-supabase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send API Request to Supabase
+        run: |
+          curl -X GET 'https://qbkufubqaoxaccwizlir.supabase.co/rest/v1/' \
+          -H "apikey: ${{ secrets.SUPABASE_KEY }}" \
+          -H "Authorization: Bearer ${{ secrets.SUPABASE_KEY }}"

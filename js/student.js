@@ -2332,16 +2332,23 @@ async function submitStudentHomework() {
   const answers=[];
   const maxPts=questions.reduce((a,q)=>a+(q.points||1),0);
   questions.forEach((q,i)=>{
-    const ans=hwAnswers[i]||null;
-    // دعم الإجابات المتعددة
-    const isMultiQ=q.multiCorrect||q.multipleCorrect||false;
+    const ans=(hwAnswers[i]!==undefined)?hwAnswers[i]:null;
+    // دعم الإجابات المتعددة — يشمل جميع أنواع علامات التعدد
+    const isMultiQ=q.isMultiple||q.multiCorrect||q.multipleCorrect||false;
     if(isMultiQ){
-      const corrArr=q.correctAnswers||(Array.isArray(q.correctAnswer)?q.correctAnswer:[q.correctAnswer]);
+      // تطبيع correctAnswers من كائن Firebase إلى مصفوفة إن لزم
+      const corrArr=Array.isArray(q.correctAnswers)
+        ? q.correctAnswers
+        : GharsUtils.toArr(q.correctAnswers);
       const studArr=Array.isArray(ans)?ans:(ans?[ans]:[]);
-      const allRight=corrArr.length>0&&corrArr.length===studArr.length&&corrArr.every(ca=>studArr.includes(ca));
+      // الإجابة صحيحة فقط إذا تطابقت جميع الخيارات تماماً
+      const allRight=corrArr.length>0&&
+        corrArr.length===studArr.length&&
+        corrArr.every(ca=>studArr.includes(ca));
       if(allRight) score+=(q.points||1);
     } else {
-      if(ans===q.correctAnswer) score+=(q.points||1);
+      // إجابة واحدة — مقارنة نصية دقيقة
+      if(ans!==null&&ans!==undefined&&ans===q.correctAnswer) score+=(q.points||1);
     }
     answers.push(ans);
   });
@@ -2379,10 +2386,11 @@ async function submitStudentHomework() {
   const correct=answers.filter((a,i)=>{
     const q=savedHw.questions[i];
     if(!q) return false;
-    const isMultiQ=q.multiCorrect||q.multipleCorrect;
+    if(a===null||a===undefined||(Array.isArray(a)&&a.length===0)) return false;
+    const isMultiQ=q.isMultiple||q.multiCorrect||q.multipleCorrect;
     if(isMultiQ){
-      const corrArr=q.correctAnswers||(Array.isArray(q.correctAnswer)?q.correctAnswer:[q.correctAnswer]);
-      const studArr=Array.isArray(a)?a:(a?[a]:[]);
+      const corrArr=Array.isArray(q.correctAnswers)?q.correctAnswers:GharsUtils.toArr(q.correctAnswers);
+      const studArr=Array.isArray(a)?a:[a];
       return corrArr.length>0&&corrArr.length===studArr.length&&corrArr.every(ca=>studArr.includes(ca));
     }
     return a===q.correctAnswer;
@@ -2413,8 +2421,86 @@ function forceSubmitHw(reason) {
     submitZeroScore();
     return;
   }
-  // وقت انتهى أو سبب آخر
-  submitStudentHomework();
+  // وقت انتهى — تسليم تلقائي بالإجابات المُدخلة فقط (بدون اشتراط الإجابة على الكل)
+  _autoSubmitOnTimeout();
+}
+
+// ── تسليم تلقائي عند انتهاء الوقت: يحسب درجة الأسئلة المُجاب عنها فقط ──
+async function _autoSubmitOnTimeout() {
+  if(!currentHw) return;
+  if(hwSolveTimer) clearInterval(hwSolveTimer);
+  removeAntiCheat();
+  const uid = Auth.currentUser.id;
+  const duration = Math.floor((Date.now()-(hwStartTime||Date.now()))/1000);
+  const questions = Array.isArray(currentHw.questions)
+    ? currentHw.questions
+    : Object.values(currentHw.questions||{});
+  const maxPts = questions.reduce((a,q)=>a+(q.points||1),0);
+  let score = 0;
+  const answers = [];
+
+  questions.forEach((q, i) => {
+    const ans = (hwAnswers[i] !== undefined) ? hwAnswers[i] : null;
+    answers.push(ans);
+    // إذا لم يجب على السؤال لا تُضف له درجة
+    const notAnswered = ans === null || ans === undefined || (Array.isArray(ans) && ans.length === 0);
+    if (notAnswered) return;
+    // احسب الدرجة للأسئلة التي أجاب عنها فقط
+    const isMultiQ = q.isMultiple || q.multiCorrect || q.multipleCorrect || false;
+    if (isMultiQ) {
+      const corrArr = Array.isArray(q.correctAnswers)
+        ? q.correctAnswers
+        : GharsUtils.toArr(q.correctAnswers);
+      const studArr = Array.isArray(ans) ? ans : [ans];
+      const allRight = corrArr.length > 0 &&
+        corrArr.length === studArr.length &&
+        corrArr.every(ca => studArr.includes(ca));
+      if (allRight) score += (q.points||1);
+    } else {
+      if (ans === q.correctAnswer) score += (q.points||1);
+    }
+  });
+
+  const allCorrect = score === maxPts;
+  const sub = {
+    id: 'sub_' + Date.now(),
+    homeworkId: currentHw.id,
+    studentId: uid,
+    answers,
+    score,
+    duration,
+    warnings: hwWarnings,
+    submittedAt: new Date().toISOString(),
+    autoSubmitted: true
+  };
+  await GharsDB.set('submissions/' + sub.id, sub);
+
+  // ── نقاط الواجب إن كان مرتبطاً بلقاء ──
+  if (currentHw.linkedMeeting) {
+    const earnedBonus = allCorrect && hwWarnings === 0;
+    const pts = await GharsDB.get('points_summary/'+uid) || {id:uid, total:0, breakdown:[]};
+    const already = pts.breakdown?.some(b => b.type==='task' && b.homeworkId===currentHw.id);
+    if (!already) {
+      const taskPts = earnedBonus ? 2 : 0;
+      const meeting = await GharsDB.get('meetings/'+currentHw.linkedMeeting);
+      if (taskPts > 0) pts.total = (pts.total||0) + taskPts;
+      pts.breakdown = [...(pts.breakdown||[]), {
+        type: 'task', homeworkId: currentHw.id,
+        meetingId: currentHw.linkedMeeting,
+        meetingTitle: meeting?.title||'لقاء',
+        points: taskPts,
+        date: new Date().toISOString(),
+        note: hwWarnings > 0 ? `ملغي — ${hwWarnings} مخالفة مُرصودة` :
+              !allCorrect     ? `ناقص — ${score}/${maxPts}` : 'ممتاز — درجة كاملة'
+      }];
+      await GharsDB.set('points_summary/'+uid, pts);
+    }
+  }
+
+  closeHwFullscreen();
+  UI.toast('⏰ انتهى الوقت المحدد — تم تسليم إجاباتك تلقائياً', 'warning', 5000);
+  navigate('homework');
+  setTimeout(() => loadStudentHomework(), 400);
 }
 
 async function submitZeroScore() {
@@ -2626,45 +2712,100 @@ async function viewMyAnswers(hwId) {
 
   // ── عرض الإجابات الكاملة ──
   const letters = 'أبجدهوزح';
+
+  // ── دالة مساعدة: تطبيع correctAnswers من كائن Firebase إلى مصفوفة ──
+  function _normCorr(q) {
+    return Array.isArray(q.correctAnswers)
+      ? q.correctAnswers
+      : GharsUtils.toArr(q.correctAnswers);
+  }
+  // ── دالة مساعدة: هل السؤال متعدد الإجابات؟ ──
+  function _isMultiQ(q) {
+    return !!(q.isMultiple || q.multiCorrect || q.multipleCorrect);
+  }
+  // ── دالة مساعدة: هل الإجابة صحيحة؟ ──
+  function _isCorrectAns(q, ans) {
+    if (_isMultiQ(q)) {
+      const corrArr = _normCorr(q);
+      const studArr = Array.isArray(ans) ? ans : (ans ? [ans] : []);
+      return corrArr.length > 0 &&
+        corrArr.length === studArr.length &&
+        corrArr.every(ca => studArr.includes(ca));
+    }
+    return ans !== null && ans !== undefined && ans === q.correctAnswer;
+  }
+
   let correctCount = 0;
   (hw.questions || []).forEach((q, i) => {
     const ans = sub.answers?.[i] ?? null;
-    const isMulti = q.multiCorrect || q.multipleCorrect;
-    if (isMulti) {
-      const corrArr = q.correctAnswers || (Array.isArray(q.correctAnswer) ? q.correctAnswer : [q.correctAnswer]);
-      const studArr = Array.isArray(ans) ? ans : (ans ? [ans] : []);
-      if (corrArr.length > 0 && corrArr.length === studArr.length && corrArr.every(a => studArr.includes(a))) correctCount++;
-    } else { if (ans === q.correctAnswer) correctCount++; }
+    if (_isCorrectAns(q, ans)) correctCount++;
   });
 
-  const questionsHtml=(hw.questions||[]).map((q,i)=>{
-    const ans=sub.answers?.[i]??null;
-    const isMulti=q.multiCorrect||q.multipleCorrect;
-    const studArr=Array.isArray(ans)?ans:(ans?[ans]:[]);
-    let isOk=false;
-    if(isMulti){
-      const corrArr=q.correctAnswers||(Array.isArray(q.correctAnswer)?q.correctAnswer:[q.correctAnswer]);
-      isOk=corrArr.length>0&&corrArr.length===studArr.length&&corrArr.every(a=>studArr.includes(a));
-    } else { isOk=ans===q.correctAnswer; }
-    const optHtml=(q.options||[]).map((opt,j)=>{
-      const stuSel=isMulti?studArr.includes(opt):ans===opt;
-      const isCorr=isMulti?(q.correctAnswers||[]).includes(opt):opt===q.correctAnswer;
-      let bg='#f8fafc',bdr='var(--gray-mid)',icon='';
-      if(stuSel&&isCorr){bg='rgba(56,161,105,0.1)';bdr='var(--green)';icon='✅';}
-      else if(stuSel&&!isCorr){bg='rgba(229,62,62,0.08)';bdr='var(--red)';icon='❌';}
-      else if(!stuSel&&isCorr){bg='rgba(56,161,105,0.05)';bdr='rgba(56,161,105,0.45)';icon='✔';}
+  const questionsHtml = (hw.questions || []).map((q, i) => {
+    const ans     = sub.answers?.[i] ?? null;
+    const isMulti = _isMultiQ(q);
+    const corrArr = _normCorr(q); // مصفوفة الإجابات الصحيحة (للمتعدد)
+    const studArr = Array.isArray(ans) ? ans : (ans ? [ans] : []);
+    const notAnswered = ans === null || ans === undefined || (Array.isArray(ans) && ans.length === 0);
+    const isOk   = !notAnswered && _isCorrectAns(q, ans);
+
+    const optHtml = (q.options || []).map((opt, j) => {
+      // هل اختار الطالب هذا الخيار؟
+      const stuSel = isMulti ? studArr.includes(opt) : (ans === opt);
+      // هل هذا الخيار صحيح حسب ما حدده المعلم؟
+      const isCorr = isMulti
+        ? corrArr.includes(opt)
+        : opt === q.correctAnswer;
+
+      let bg  = '#f8fafc';
+      let bdr = 'var(--gray-mid)';
+      let icon = '';
+
+      if (stuSel && isCorr) {
+        // اختار الطالب الصح ← خلفية خضراء + علامة صح
+        bg   = 'rgba(56,161,105,0.12)';
+        bdr  = 'var(--green)';
+        icon = '<span style="color:var(--green);font-size:1.15rem;font-weight:900">✅</span>';
+      } else if (stuSel && !isCorr) {
+        // اختار الطالب خطأ ← خلفية حمراء + علامة خطأ
+        bg   = 'rgba(229,62,62,0.10)';
+        bdr  = 'var(--red)';
+        icon = '<span style="color:var(--red);font-size:1.15rem;font-weight:900">❌</span>';
+      } else if (!stuSel && isCorr) {
+        // الإجابة الصحيحة لم يختارها الطالب ← تمييز واضح بعلامة صح خضراء
+        bg   = 'rgba(56,161,105,0.09)';
+        bdr  = 'rgba(56,161,105,0.7)';
+        icon = '<span style="color:var(--green);font-size:1.15rem;font-weight:900">✅</span>';
+      }
+      // الخيار غير محدد وغير صحيح ← لا أيقونة ولا تمييز
+
       return `<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;border:1.5px solid ${bdr};background:${bg};margin-bottom:6px">
         <div style="width:28px;height:28px;border-radius:7px;background:${isCorr?'var(--green)':'var(--gray-mid)'};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.82rem;flex-shrink:0">${letters[j]||j+1}</div>
         <span style="flex:1;font-size:0.84rem;color:var(--navy)">${e(opt)}</span>
-        <span style="font-size:1rem;flex-shrink:0">${icon}</span>
+        ${icon}
       </div>`;
     }).join('');
-    return `<div style="border-radius:12px;overflow:hidden;margin-bottom:12px;border:2px solid ${isOk?'var(--green)':'var(--red)'};animation:fadeInUp 0.3s ${i*0.05}s both ease">
-      <div style="background:${isOk?'linear-gradient(135deg,#c6f6d5,#9ae6b4)':'linear-gradient(135deg,#fed7d7,#feb2b2)'};padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
-        <span style="font-weight:800;font-size:0.87rem;color:${isOk?'#22543d':'#742a2a'};flex:1">س${i+1}: ${e(q.question)}</span>
-        <div style="display:flex;align-items:center;gap:5px;flex-shrink:0">
+
+    // عنوان السؤال — لو لم يُجب عليه يظهر بلون رمادي
+    const headerBg = notAnswered
+      ? 'linear-gradient(135deg,#e2e8f0,#cbd5e0)'
+      : isOk
+        ? 'linear-gradient(135deg,#c6f6d5,#9ae6b4)'
+        : 'linear-gradient(135deg,#fed7d7,#feb2b2)';
+    const headerColor = notAnswered ? '#4a5568' : isOk ? '#22543d' : '#742a2a';
+    const borderColor = notAnswered ? 'var(--gray-mid)' : isOk ? 'var(--green)' : 'var(--red)';
+    const statusIcon  = notAnswered ? '—' : isOk ? '✅' : '❌';
+    const qPts = q.points || 1;
+    const earnedPts = isOk ? qPts : 0;
+
+    return `<div style="border-radius:12px;overflow:hidden;margin-bottom:12px;border:2px solid ${borderColor};animation:fadeInUp 0.3s ${i*0.05}s both ease">
+      <div style="background:${headerBg};padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
+        <span style="font-weight:800;font-size:0.87rem;color:${headerColor};flex:1">س${i+1}: ${e(q.question)}</span>
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
           ${isMulti?'<span style="background:rgba(0,0,0,0.12);border-radius:12px;padding:2px 8px;font-size:0.67rem;font-weight:700;color:#333">⚡ متعدد</span>':''}
-          <span style="font-size:1.1rem">${isOk?'✅':'❌'}</span>
+          ${notAnswered?'<span style="background:rgba(0,0,0,0.1);border-radius:12px;padding:2px 8px;font-size:0.7rem;font-weight:700;color:#4a5568">لم يُجب</span>':''}
+          <span style="background:rgba(0,0,0,0.12);border-radius:12px;padding:2px 9px;font-size:0.72rem;font-weight:800;color:${headerColor}">${earnedPts}/${qPts}</span>
+          <span style="font-size:1.1rem">${statusIcon}</span>
         </div>
       </div>
       <div style="padding:10px 12px;background:#fff">${optHtml}</div>

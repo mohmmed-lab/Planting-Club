@@ -2794,7 +2794,7 @@ async function viewMyAnswers(hwId) {
         : 'linear-gradient(135deg,#fed7d7,#feb2b2)';
     const headerColor = notAnswered ? '#4a5568' : isOk ? '#22543d' : '#742a2a';
     const borderColor = notAnswered ? 'var(--gray-mid)' : isOk ? 'var(--green)' : 'var(--red)';
-    const statusIcon  = notAnswered ? '—' : isOk ? '✅' : '❌';
+    const statusIcon  = notAnswered ? '' : isOk ? '' : '';
     const qPts = q.points || 1;
     const earnedPts = isOk ? qPts : 0;
 
